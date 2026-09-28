@@ -505,6 +505,11 @@ export const DashboardScreen: React.FC = () => {
           ]}
         >
           <View>
+            <Image
+              source={require('../../assets/images/pln_icon_plus_white.png')}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
             <Text style={styles.headerOverline}>BERANDA</Text>
             <Text style={styles.headerTitle}>{getGreeting()}</Text>
             <Text style={styles.inspectorNameText}>
@@ -793,6 +798,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  headerLogo: {
+    width: 140,
+    height: 42,
+    marginBottom: Spacing.sm,
+    resizeMode: 'contain',
   },
   headerOverline: {
     ...Typography.overline,

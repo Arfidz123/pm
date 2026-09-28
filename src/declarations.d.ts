@@ -18,5 +18,16 @@ declare module 'react-native-html-to-pdf' {
     static convert(options: Options): Promise<PDFResult>;
   }
 
+
   export function generatePDF(options: Options): Promise<PDFResult>;
+}
+
+declare module '*.png' {
+  const value: any;
+  export default value;
+}
+
+declare module '*.jpg' {
+  const value: any;
+  export default value;
 }
