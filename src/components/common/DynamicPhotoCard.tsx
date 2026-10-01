@@ -63,8 +63,6 @@ export const DynamicPhotoCard: React.FC<DynamicPhotoCardProps> = ({
     };
   }, [uri]);
 
-  const isRemote = uri ? (uri.startsWith('http') || uri.startsWith('telegram://')) : false;
-
   return (
     <View style={styles.photoUploadBoxWrapper}>
       <TouchableOpacity
@@ -73,14 +71,14 @@ export const DynamicPhotoCard: React.FC<DynamicPhotoCardProps> = ({
         activeOpacity={0.85}
       >
         <Image source={{ uri: displayUri }} style={styles.uploadedImage} />
-        {!isRemote && label ? (
+        {label ? (
           <View style={styles.topLabelOverlay}>
             <Text style={styles.topLabelText} numberOfLines={1}>
               {label}
             </Text>
           </View>
         ) : null}
-        {!isRemote && (displayDateStr || coordsStr || addressStr) && (
+        {(displayDateStr || coordsStr || addressStr) && (
           <View style={styles.timestampBadgeOverlay}>
             {displayDateStr ? (
               <Text style={styles.timestampOverlayText}>

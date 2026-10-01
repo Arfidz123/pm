@@ -127,8 +127,8 @@ export const processInspectionMediaForCloud = async (data: {
       remotePdfPath.startsWith('content://'))
   ) {
     try {
-      const caption = `Laporan PM: ${data.popName || 'POP'} (${data.popId || ''
-        })\nTanggal: ${new Date().toLocaleDateString('id-ID')}`;
+      const caption = `📄 Laporan PM: ${data.popName || 'POP'} (${data.popId || ''
+        })\n📅 Tanggal: ${new Date().toLocaleDateString('id-ID')}`;
       const uploadedPdf = await uploadFileToTelegram(remotePdfPath, caption);
       if (
         uploadedPdf &&
@@ -150,21 +150,16 @@ export const processInspectionMediaForCloud = async (data: {
       const photoTimestamps = data.formData?.photoTimestamps || {};
       const photoCoordinates = data.formData?.photoCoordinates || {};
       const photoCategories = data.formData?.photoCategories || {};
-      // Gunakan alamat GPS asli (reverse geocoded) bukan nama POP
-      const gpsAddress =
-        data.formData?.infoPop?.alamat ||
-        data.formData?.infoPop?.activePopLocation ||
-        '';
+      const defaultPopName =
+        data.popName || data.formData?.infoPop?.namaPop || '';
 
       const metadataMap: Record<string, any> = {};
       allPhotoUris.forEach(uri => {
-        // Gunakan koordinat per-foto sebagai fallback address jika alamat GPS kosong
-        const perPhotoCoords = photoCoordinates[uri] || '';
         metadataMap[uri] = {
           timestamp: photoTimestamps[uri] || getCurrentFormattedTimestamp(),
-          coordinates: perPhotoCoords,
+          coordinates: photoCoordinates[uri] || '',
           label: photoCategories[uri] || '',
-          address: gpsAddress || perPhotoCoords,
+          address: defaultPopName,
         };
       });
 
@@ -408,7 +403,6 @@ export const restoreInspectionsFromFirebase = async () => {
       if (allSyncedLocal.length > 0) {
         await database.write(async () => {
           for (const local of allSyncedLocal) {
-            if (local.id === 'active_inspection_draft' || local.status === 'draft') continue;
             await local.destroyPermanently();
           }
         });
@@ -430,7 +424,6 @@ export const restoreInspectionsFromFirebase = async () => {
         .fetch();
 
       for (const local of allSyncedLocal) {
-        if (local.id === 'active_inspection_draft' || local.status === 'draft') continue;
         if (!remoteIdSet.has(local.id)) {
           await local.destroyPermanently();
           restoredCount++;

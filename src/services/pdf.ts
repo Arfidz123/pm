@@ -110,7 +110,7 @@ function buildHTMLReport(data: PDFInspectionData): string {
 
       let displayValue = item.value;
       if (item.type === 'pass_fail') {
-        displayValue = item.value === 'true' ? 'PASS' : 'FAIL';
+        displayValue = item.value === 'true' ? 'PASS ✓' : 'FAIL ✗';
       }
       if (item.unit) {
         displayValue = `${item.value} ${item.unit}`;
@@ -301,7 +301,7 @@ function buildHTMLReport(data: PDFInspectionData): string {
         <!-- Header -->
         <div class="header">
           <div class="header-left">
-            <h1>Laporan ${inspectionTypeLabels[data.type] || data.type}</h1>
+            <h1>📋 Laporan ${inspectionTypeLabels[data.type] || data.type}</h1>
             <p>${categoryLabels[data.asset.category] || data.asset.category}</p>
           </div>
           <div class="header-right">

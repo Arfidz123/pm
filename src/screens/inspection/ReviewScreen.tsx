@@ -148,7 +148,7 @@ export const ReviewScreen: React.FC = () => {
                 <View style={styles.assetInfo}>
                   <Text style={styles.assetCode}>{asset.assetCode}</Text>
                   <Text style={styles.assetName}>{asset.name}</Text>
-                  <Text style={styles.assetLocation}>{asset.location}</Text>
+                  <Text style={styles.assetLocation}>📍 {asset.location}</Text>
                 </View>
               </View>
             )}

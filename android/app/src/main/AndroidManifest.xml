@@ -18,8 +18,6 @@
       android:allowBackup="false"
       android:theme="@style/AppTheme"
       android:usesCleartextTraffic="${usesCleartextTraffic}"
-      android:largeHeap="true"
-      android:hardwareAccelerated="true"
       android:supportsRtl="true">
       <activity
         android:name=".MainActivity"

@@ -197,9 +197,6 @@ export const HistoryReviewPdfScreen: React.FC = () => {
         html: downloadableHtml,
         fileName: pdfFileName,
         directory: 'docs',
-        // Match the HTML template viewport so CSS widths render correctly in the PDF
-        width: 1500,
-        height: 2100,
       };
 
       try {
@@ -397,7 +394,7 @@ export const HistoryReviewPdfScreen: React.FC = () => {
           onBack={() => navigation.goBack()}
         />
         <View style={styles.loadingContainer}>
-          <Text style={styles.emptyIcon}>--</Text>
+          <Text style={styles.emptyIcon}>📄</Text>
           <Text style={styles.emptyTitle}>Data Review Tidak Tersedia</Text>
           <Text style={styles.emptySubtitle}>
             Laporan ini tidak memiliki data form yang tersimpan

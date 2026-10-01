@@ -83,8 +83,6 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     '';
   const dateStr = imageUri ? getPhotoTimestamp(imageUri) : '';
 
-  const isRemote = imageUri ? (imageUri.startsWith('http') || imageUri.startsWith('telegram://')) : false;
-
   return (
     <Modal
       visible={visible}
@@ -109,8 +107,7 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
               resizeMode="cover"
             />
             {/* Watermark overlay directly inside the photo */}
-            {!isRemote && (
-              <View style={styles.watermarkOverlay}>
+            <View style={styles.watermarkOverlay}>
                 <Text style={styles.watermarkText}>Tgl/Jam: {dateStr}</Text>
                 <Text style={styles.watermarkTextSub}>
                   Koordinat: {coordsStr || 'Mendapatkan GPS...'}
@@ -119,7 +116,6 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                   Alamat: {addressStr || '-'}
                 </Text>
               </View>
-            )}
           </View>
         </View>
       </SafeAreaView>

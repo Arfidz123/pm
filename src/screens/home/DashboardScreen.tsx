@@ -429,9 +429,9 @@ export const DashboardScreen: React.FC = () => {
             />
             <Text style={styles.headerOverline}>PREVENTIVE MAINTENANCE</Text>
             <Text style={styles.headerTitle}>{getGreeting()}</Text>
-            {inspectorName ? (
-              <Text style={styles.inspectorNameText}>{inspectorName}</Text>
-            ) : null}
+            <Text style={styles.inspectorNameText}>
+              {inspectorName || 'Teknisi'}
+            </Text>
           </View>
         </Animated.View>
       </LinearGradient>
@@ -644,20 +644,6 @@ export const DashboardScreen: React.FC = () => {
                         !isDisabled && styles.gridItemActive,
                       ]}
                     >
-                      {/* Subtle futuristic index watermark */}
-                      <Text
-                        style={[
-                          styles.gridIndexBadge,
-                          {
-                            color: isDisabled
-                              ? 'rgba(255,255,255,0.12)'
-                              : 'rgba(255,255,255,0.3)',
-                          },
-                        ]}
-                      >
-                        {String(index + 1).padStart(2, '0')}
-                      </Text>
-
                       <View
                         style={[
                           styles.gridIconWrapper,
@@ -700,7 +686,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   headerGradient: {
-    paddingTop: 106,
+    paddingTop: 56,
     paddingBottom: Spacing.lg,
     paddingHorizontal: Spacing.lg,
     overflow: 'hidden',
@@ -708,15 +694,12 @@ const styles = StyleSheet.create({
   headerTitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.lg,
+    alignItems: 'center',
   },
   headerLogo: {
-    position: 'absolute',
-    top: -50,
-    left: 0,
     width: 140,
     height: 42,
+    marginBottom: Spacing.sm,
     resizeMode: 'contain',
   },
   headerOverline: {
@@ -1058,13 +1041,5 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 11,
     fontWeight: '600',
-  },
-  gridIndexBadge: {
-    position: 'absolute',
-    top: 6,
-    right: 8,
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 0.5,
   },
 });

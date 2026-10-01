@@ -272,53 +272,20 @@ class PdfDownloaderModule(private val reactContext: ReactApplicationContext) :
                 val cleanPath = imagePath.replace("file://", "")
                 val file = File(cleanPath)
 
-                // 1. Measure dimensions for downsampling to prevent OutOfMemory
-                val boundsOptions = BitmapFactory.Options().apply {
-                    inJustDecodeBounds = true
-                }
-                val boundsStream = if (file.exists()) {
+                // 1. Decode bitmap
+                val inputStream = if (file.exists()) {
                     FileInputStream(file)
                 } else {
                     reactContext.contentResolver.openInputStream(Uri.parse(imagePath))
                 }
 
-                if (boundsStream == null) {
+                if (inputStream == null) {
                     promise.resolve(imagePath)
                     return@Thread
                 }
 
-                BitmapFactory.decodeStream(boundsStream, null, boundsOptions)
-                boundsStream.close()
-
-                val rawWidth = boundsOptions.outWidth
-                val rawHeight = boundsOptions.outHeight
-                var sampleSize = 1
-                val maxDimension = 1440
-                if (rawWidth > maxDimension || rawHeight > maxDimension) {
-                    val halfWidth = rawWidth / 2
-                    val halfHeight = rawHeight / 2
-                    while ((halfWidth / sampleSize) >= maxDimension && (halfHeight / sampleSize) >= maxDimension) {
-                        sampleSize *= 2
-                    }
-                }
-
-                // Decode with sampleSize
-                val decodeOptions = BitmapFactory.Options().apply {
-                    inSampleSize = sampleSize
-                }
-                val decodeStream = if (file.exists()) {
-                    FileInputStream(file)
-                } else {
-                    reactContext.contentResolver.openInputStream(Uri.parse(imagePath))
-                }
-
-                if (decodeStream == null) {
-                    promise.resolve(imagePath)
-                    return@Thread
-                }
-
-                val originalBitmap = BitmapFactory.decodeStream(decodeStream, null, decodeOptions)
-                decodeStream.close()
+                val originalBitmap = BitmapFactory.decodeStream(inputStream)
+                inputStream.close()
 
                 if (originalBitmap == null) {
                     promise.resolve(imagePath)
@@ -348,18 +315,12 @@ class PdfDownloaderModule(private val reactContext: ReactApplicationContext) :
                     ExifInterface.ORIENTATION_ROTATE_270 -> rotateBitmap(originalBitmap, 270f)
                     else -> originalBitmap
                 }
-                if (rotatedBitmap != originalBitmap) {
-                    originalBitmap.recycle()
-                }
 
                 val width = rotatedBitmap.width
                 val height = rotatedBitmap.height
 
                 // Create mutable bitmap & canvas
                 val stampedBitmap = rotatedBitmap.copy(Bitmap.Config.ARGB_8888, true)
-                if (stampedBitmap != rotatedBitmap) {
-                    rotatedBitmap.recycle()
-                }
                 val canvas = Canvas(stampedBitmap)
 
                 // Extract options
@@ -389,15 +350,15 @@ class PdfDownloaderModule(private val reactContext: ReactApplicationContext) :
                         color = Color.WHITE
                         textSize = fontSize
                         typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
-                        // Make shadow thicker for better visibility without background, like UI
-                        setShadowLayer(4f * scale, 1.5f * scale, 1.5f * scale, Color.BLACK)
+                        setShadowLayer(3f * scale, 1.5f * scale, 1.5f * scale, Color.argb(220, 0, 0, 0))
                     }
 
                     val fontMetrics = textPaint.fontMetrics
                     val lineHeight = fontMetrics.bottom - fontMetrics.top
 
-                    // Limit text width to 95% of image width
-                    val maxTextWidthAllowed = width - (margin * 2)
+                    // Limit badge width to 90% of image width
+                    val maxBadgeWidth = width - (margin * 2)
+                    val maxTextWidthAllowed = maxBadgeWidth - (paddingX * 2)
 
                     // Truncate long lines if exceeding image width
                     val processedLines = lines.map { line ->
@@ -411,64 +372,43 @@ class PdfDownloaderModule(private val reactContext: ReactApplicationContext) :
                         displayLine
                     }
 
-                    val blockHeight = (processedLines.size * lineHeight) + ((processedLines.size - 1) * lineSpacing)
+                    var maxLineWidth = 0f
+                    for (line in processedLines) {
+                        val w = textPaint.measureText(line)
+                        if (w > maxLineWidth) maxLineWidth = w
+                    }
+
+                    val badgeWidth = Math.min(maxLineWidth + (paddingX * 2), maxBadgeWidth)
+                    val badgeHeight = (processedLines.size * lineHeight) + ((processedLines.size - 1) * lineSpacing) + (paddingY * 2)
 
                     // Position at bottom-left
                     val left = margin
                     val bottom = height - margin
-                    val top = bottom - blockHeight
+                    val top = bottom - badgeHeight
+                    val right = left + badgeWidth
 
-                    // Draw timestamp lines directly (no background box, like UI)
-                    var currentY = top - fontMetrics.top
-                    for (line in processedLines) {
-                        canvas.drawText(line, left, currentY, textPaint)
-                        currentY += lineHeight + lineSpacing
-                    }
-                }
-
-                // Draw Label at top-left if provided, exactly like UI topLabelOverlay
-                if (!label.isNullOrBlank()) {
-                    val baseDimension = Math.min(width, height).toFloat()
-                    val scale = Math.max(0.6f, baseDimension / 720f)
-                    
-                    val labelFontSize = 18f * scale
-                    val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                        color = Color.WHITE
-                        textSize = labelFontSize
-                        typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
-                        setShadowLayer(2f * scale, 1f * scale, 1f * scale, Color.BLACK)
-                    }
-                    val labelFontMetrics = labelPaint.fontMetrics
-                    val labelLineHeight = labelFontMetrics.bottom - labelFontMetrics.top
-                    
-                    val labelPaddingX = 12f * scale
-                    val labelPaddingY = 6f * scale
-                    val labelMargin = 16f * scale
-                    val labelCornerRadius = 8f * scale
-                    
-                    var displayLabel = label ?: ""
-                    val maxLabelWidth = width - (labelMargin * 2) - (labelPaddingX * 2)
-                    if (labelPaint.measureText(displayLabel) > maxLabelWidth) {
-                         while (displayLabel.length > 4 && labelPaint.measureText("$displayLabel...") > maxLabelWidth) {
-                              displayLabel = displayLabel.dropLast(1)
-                         }
-                         displayLabel = "$displayLabel..."
-                    }
-                    
-                    val textW = labelPaint.measureText(displayLabel)
-                    val bgRight = labelMargin + textW + (labelPaddingX * 2)
-                    val bgBottom = labelMargin + labelLineHeight + (labelPaddingY * 2)
-                    
-                    val labelBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                        color = Color.argb(165, 0, 0, 0) // rgba(0,0,0,0.65)
+                    // Draw semi-transparent dark rounded badge
+                    val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        color = Color.argb(195, 15, 23, 42) // #0F172A ~76% opacity
                         style = Paint.Style.FILL
                     }
-                    
-                    val labelRect = RectF(labelMargin, labelMargin, bgRight, bgBottom)
-                    canvas.drawRoundRect(labelRect, labelCornerRadius, labelCornerRadius, labelBgPaint)
-                    
-                    val textY = labelMargin + labelPaddingY - labelFontMetrics.top
-                    canvas.drawText(displayLabel, labelMargin + labelPaddingX, textY, labelPaint)
+                    val badgeRect = RectF(left, top, right, bottom)
+                    canvas.drawRoundRect(badgeRect, cornerRadius, cornerRadius, bgPaint)
+
+                    // Draw subtle border around badge
+                    val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        color = Color.argb(70, 255, 255, 255)
+                        style = Paint.Style.STROKE
+                        strokeWidth = 1.5f * scale
+                    }
+                    canvas.drawRoundRect(badgeRect, cornerRadius, cornerRadius, strokePaint)
+
+                    // Draw lines
+                    var currentY = top + paddingY - fontMetrics.top
+                    for (line in processedLines) {
+                        canvas.drawText(line, left + paddingX, currentY, textPaint)
+                        currentY += lineHeight + lineSpacing
+                    }
                 }
 
                 // 3. Save stamped bitmap to app cache directory
@@ -476,13 +416,12 @@ class PdfDownloaderModule(private val reactContext: ReactApplicationContext) :
                 if (!cacheDir.exists()) cacheDir.mkdirs()
                 val outFile = File(cacheDir, "stamp_${System.currentTimeMillis()}_${(1000..9999).random()}.jpg")
                 FileOutputStream(outFile).use { out ->
-                    stampedBitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
+                    stampedBitmap.compress(Bitmap.CompressFormat.JPEG, 88, out)
                 }
-                stampedBitmap.recycle()
 
                 promise.resolve("file://${outFile.absolutePath}")
-            } catch (t: Throwable) {
-                t.printStackTrace()
+            } catch (e: Exception) {
+                e.printStackTrace()
                 // Graceful fallback to original image
                 promise.resolve(imagePath)
             }

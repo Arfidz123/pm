@@ -203,10 +203,21 @@ export const uploadFileToTelegramDetailed = async (
       `[Telegram Storage] Memulai upload: ${uploadPath} ke endpoint: ${endpoint}`,
     );
 
-    // Kirim foto tanpa deskripsi caption (user request)
+    // Format caption Telegram yang informatif jika stampOptions diberikan
     let finalCaption = caption;
-    if (!caption || caption === 'CMMS Inspection Media') {
-      finalCaption = '';
+    if (
+      (!caption || caption === 'CMMS Inspection Media') &&
+      stampOptions &&
+      (stampOptions.timestamp ||
+        stampOptions.coordinates ||
+        stampOptions.label ||
+        stampOptions.address)
+    ) {
+      const parts: string[] = [];
+      if (stampOptions.timestamp) parts.push(`🗓️ Waktu: ${stampOptions.timestamp}`);
+      if (stampOptions.coordinates) parts.push(`📍 Koordinat: ${stampOptions.coordinates}`);
+      if (stampOptions.address) parts.push(`🏢 Lokasi: ${stampOptions.address}`);
+      finalCaption = parts.join('\n');
     }
 
     const formData = new FormData();
@@ -248,7 +259,7 @@ export const uploadFileToTelegramDetailed = async (
             timestamp: Date.now(),
           });
           console.log(
-            `[Telegram Storage] Berhasil upload ${fileName} -> file_id: ${fileId}`,
+            `[Telegram Storage] Berhasil upload ${fileName} ➜ file_id: ${fileId}`,
           );
         }
         return {
@@ -280,6 +291,9 @@ export const uploadFileToTelegram = async (
   return result.telegramUri || result.downloadUrl || localUri;
 };
 
+/**
+ * Upload multiple files ke Telegram dengan concurrency control dan auto-stamping
+ */
 export const uploadFilesInBatchToTelegram = async (
   localUris: string[],
   captionPrefix: string = '',
@@ -291,144 +305,25 @@ export const uploadFilesInBatchToTelegram = async (
 
   if (uniqueUris.length === 0) return urlMap;
 
-  // Pisahkan PDF, gambar baru, dan gambar yang sudah terupload
-  const pdfUris = uniqueUris.filter(uri => uri.toLowerCase().endsWith('.pdf'));
-  const imageUris = uniqueUris.filter(
-    uri => !uri.toLowerCase().endsWith('.pdf') && !uri.startsWith('http') && !uri.startsWith('telegram://')
-  );
-  const alreadyUploadedUris = uniqueUris.filter(
-    uri => uri.startsWith('http') || uri.startsWith('telegram://')
-  );
-
-  // Masukkan yang sudah terupload
-  alreadyUploadedUris.forEach(uri => (urlMap[uri] = uri));
-
-  // 1. Proses PDF secara berurutan
-  for (const pdfUri of pdfUris) {
-    const res = await uploadFileToTelegramDetailed(pdfUri, captionPrefix);
-    if (res.telegramUri || res.downloadUrl) {
-      urlMap[pdfUri] = res.telegramUri || res.downloadUrl;
-    }
-  }
-
-  if (!telegramConfig.botToken || !telegramConfig.chatId) {
-    console.log('[Telegram Storage] Bot token / Chat ID belum disetel, file tetap disimpan di lokal.');
-    imageUris.forEach(uri => (urlMap[uri] = uri));
-    return urlMap;
-  }
-
-  // 2. Proses gambar menggunakan sendMediaGroup (maksimal 10 foto per album)
-  const chunkSize = 10;
-  for (let i = 0; i < imageUris.length; i += chunkSize) {
-    const chunk = imageUris.slice(i, i + chunkSize);
-
-    // Lakukan stamping pada semua foto di chunk ini secara paralel agar sangat cepat
-    const processedChunk = await Promise.all(
-      chunk.map(async (uri) => {
-        let cleanPath = uri;
-        if (Platform.OS === 'android') {
-          if (!cleanPath.startsWith('file://') && !cleanPath.startsWith('content://')) {
-            cleanPath = `file://${cleanPath}`;
-          }
-        }
-
-        let uploadPath = cleanPath;
-        const stampOptions = metadataMap ? metadataMap[uri] : undefined;
+  for (let i = 0; i < uniqueUris.length; i += concurrency) {
+    const chunk = uniqueUris.slice(i, i + concurrency);
+    await Promise.all(
+      chunk.map(async uri => {
         if (
-          stampOptions &&
-          (stampOptions.timestamp ||
-            stampOptions.coordinates ||
-            stampOptions.label ||
-            stampOptions.address)
+          uri.startsWith('http://') ||
+          uri.startsWith('https://') ||
+          uri.startsWith('telegram://')
         ) {
-          try {
-            uploadPath = await stampPhotoWithMetadata(cleanPath, stampOptions);
-          } catch (err) {
-            console.warn('[Telegram Storage] Gagal stamp foto, kirim foto asli:', err);
-          }
+          urlMap[uri] = uri;
+          return;
         }
-
-        return { originalUri: uri, uploadPath };
-      })
-    );
-
-    // Siapkan form data untuk MediaGroup
-    const formData = new FormData();
-    formData.append('chat_id', telegramConfig.chatId);
-
-    const mediaArray = processedChunk.map((item, index) => {
-      const attachName = `photo${index}`;
-
-      const rawPath = item.uploadPath.split('?')[0];
-      const ext = rawPath.substring(rawPath.lastIndexOf('.') + 1).toLowerCase() || 'jpg';
-      const mimeType = getMimeType(ext);
-      const fileName = `${Date.now()}_${index}.${ext}`;
-
-      // Tambahkan file aslinya
-      formData.append(attachName, {
-        uri: item.uploadPath,
-        type: mimeType,
-        name: fileName,
-      } as any);
-
-      // Definisikan Media Input
-      return {
-        type: 'photo',
-        media: `attach://${attachName}`,
-        caption: index === 0 && captionPrefix ? captionPrefix : '', // Caption cuma ditaruh di foto pertama di album
-      };
-    });
-
-    formData.append('media', JSON.stringify(mediaArray));
-
-    try {
-      console.log(`[Telegram Storage] Mengirim MediaGroup (${chunk.length} foto) ke Telegram...`);
-      const response = await fetch(`https://api.telegram.org/bot${telegramConfig.botToken}/sendMediaGroup`, {
-        method: 'POST',
-        body: formData,
-      });
-      const result = await response.json();
-
-      if (result.ok && result.result && Array.isArray(result.result)) {
-        // Petakan hasil ke URI asli
-        for (let j = 0; j < result.result.length; j++) {
-          const msg = result.result[j];
-          if (msg.photo && Array.isArray(msg.photo)) {
-            const highestResPhoto = msg.photo[msg.photo.length - 1];
-            const fileId = highestResPhoto.file_id;
-
-            if (fileId) {
-              const tgUri = `telegram://${fileId}`;
-              urlMap[processedChunk[j].originalUri] = tgUri;
-              console.log(`[Telegram Storage] Berhasil upload (Album) -> file_id: ${fileId}`);
-
-              // Resolve ke URL asli di background untuk cache
-              getTelegramFileUrl(fileId).then(downloadUrl => {
-                if (downloadUrl) {
-                  resolvedUrlCache.set(fileId, { url: downloadUrl, timestamp: Date.now() });
-                }
-              });
-            }
-          }
-        }
-      } else {
-        console.warn('[Telegram Storage] sendMediaGroup API error:', result);
-        // Fallback jika MediaGroup gagal (contoh: format foto aneh)
-        for (const uri of chunk) {
-          const stampOptions = metadataMap ? metadataMap[uri] : undefined;
-          const res = await uploadFileToTelegramDetailed(uri, captionPrefix, stampOptions);
-          urlMap[uri] = res.telegramUri || res.downloadUrl || uri;
-        }
-      }
-    } catch (err) {
-      console.error('[Telegram Storage] Exception in sendMediaGroup:', err);
-      // Fallback
-      for (const uri of chunk) {
         const stampOptions = metadataMap ? metadataMap[uri] : undefined;
         const res = await uploadFileToTelegramDetailed(uri, captionPrefix, stampOptions);
-        urlMap[uri] = res.telegramUri || res.downloadUrl || uri;
-      }
-    }
+        if (res.telegramUri || res.downloadUrl) {
+          urlMap[uri] = res.telegramUri || res.downloadUrl;
+        }
+      }),
+    );
   }
 
   return urlMap;

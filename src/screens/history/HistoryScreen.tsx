@@ -637,7 +637,7 @@ const styles = StyleSheet.create({
   // ─── Header ───
   headerContainer: {},
   headerGradient: {
-    paddingTop: 106,
+    paddingTop: 56,
     paddingBottom: Spacing.lg,
     paddingHorizontal: Spacing.lg,
   },
