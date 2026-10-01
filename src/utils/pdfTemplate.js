@@ -325,36 +325,121 @@ var generatePdfHtml = function (
                 return html;
         };
 
-        var spacerRow =
-                '<tr><td colspan="17" style="height: 8px; background-color: #fff; border-left: none; border-right: none; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;"></td></tr>\n';
+        var singleTableCapacityRows = '';
+        var emptyCell = '<td style="padding: 2px; border: 1.5px solid #000; text-align: center;"></td>';
+        for (var rowIdx = 1; rowIdx <= 15; rowIdx++) {
+            singleTableCapacityRows += '  <tr style="font-size: 16px; background-color: #fff; text-align: center;">\n';
+            if (rowIdx <= 4) {
+                singleTableCapacityRows += '    <td rowspan="1" colspan="2" style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000; font-weight: bold;">Sel ' + rowIdx + '</td>\n';
+            } else if (rowIdx === 5) {
+                singleTableCapacityRows += '    <td rowspan="2" style="padding: 2px; border: 1.5px solid #000; font-weight: bold;">KONDISI<br/>BATERAI</td>\n';
+                singleTableCapacityRows += '    <td rowspan="2" style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000;"></td>\n';
+            } else if (rowIdx === 6) {
+                // rowspan 2 takes care of this row's first two columns
+            } else if (rowIdx === 7) {
+                singleTableCapacityRows += '    <td colspan="2" style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000; font-weight: bold;">V Total</td>\n';
+            } else if (rowIdx === 8) {
+                singleTableCapacityRows += '    <td colspan="2" style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000; font-weight: bold;">I Load</td>\n';
+            } else if (rowIdx === 9) {
+                singleTableCapacityRows += '    <td colspan="17" style="height: 8px; background-color: #fff; border-left: none; border-right: 3px solid #000; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;"></td>\n';
+                // Rectifier 2 spacer
+                singleTableCapacityRows += '    <td colspan="17" style="height: 8px; background-color: #fff; border-left: none; border-right: none; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;"></td>\n';
+                singleTableCapacityRows += '  </tr>\n';
+                continue;
+            } else {
+                singleTableCapacityRows += '    <td colspan="17" style="height: 8px; background-color: #fff; border-left: none; border-right: 3px solid #000; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;"></td>\n';
+                singleTableCapacityRows += '    <td colspan="17" style="height: 8px; background-color: #fff; border-left: none; border-right: none; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;"></td>\n';
+                singleTableCapacityRows += '  </tr>\n';
+                continue;
+            }
+            
+            // Rectifier 1 cells
+            for (var col = 1; col <= 15; col++) {
+                if (col === 15) {
+                    singleTableCapacityRows += '    <td style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000; text-align: center;"></td>\n';
+                } else {
+                    singleTableCapacityRows += '    ' + emptyCell + '\n';
+                }
+            }
+
+            // Rectifier 2 headers/cells
+            if (rowIdx <= 4) {
+                singleTableCapacityRows += '    <td rowspan="1" colspan="2" style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000; font-weight: bold;">Sel ' + rowIdx + '</td>\n';
+            } else if (rowIdx === 5) {
+                singleTableCapacityRows += '    <td rowspan="2" style="padding: 2px; border: 1.5px solid #000; font-weight: bold;">KONDISI<br/>BATERAI</td>\n';
+                singleTableCapacityRows += '    <td rowspan="2" style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000;"></td>\n';
+            } else if (rowIdx === 6) {
+                // rowspan 2 takes care of this row's first two columns
+            } else if (rowIdx === 7) {
+                singleTableCapacityRows += '    <td colspan="2" style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000; font-weight: bold;">V Total</td>\n';
+            } else if (rowIdx === 8) {
+                singleTableCapacityRows += '    <td colspan="2" style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000; font-weight: bold;">I Load</td>\n';
+            }
+            
+            // Rectifier 2 cells
+            for (var col = 1; col <= 15; col++) {
+                singleTableCapacityRows += '    ' + emptyCell + '\n';
+            }
+            
+            singleTableCapacityRows += '  </tr>\n';
+        }
 
         var ujiKapasitasBateraiHtml =
                 '<table style="width: 98%; border-collapse: collapse; border: 3px solid #000; text-align: center; line-height: 1.1; margin-top: 8px; font-size: 16px;">\n' +
                 '  <tr style="font-size: 16px;">\n' +
-                '    <td colspan="2" style="background-color: red; color: white; text-align: center; font-weight: bold; border-bottom: 1.5px solid #000; padding: 3px; font-size: 18px;">TABEL UJI KAPASITAS BATERAI</td>\n' +
+                '    <td colspan="34" style="background-color: red; color: white; text-align: center; font-weight: bold; border-bottom: 1.5px solid #000; padding: 3px; font-size: 18px;">TABEL UJI KAPASITAS BATERAI</td>\n' +
                 '  </tr>\n' +
                 '  <tr style="font-size: 16px;">\n' +
-                '    <td width="50%" style="vertical-align: top; padding: 0; border-right: 3px solid #000; font-size: 16px;">\n' +
-                '      <table style="width: 100%; border-collapse: collapse; border: none; font-size: 16px;">\n' +
-                '        <tr style="font-size: 16px;"><td colspan="17" style="background-color: red; color: white; font-weight: bold; text-align: center; padding: 2px; border-bottom: 1.5px solid #000; font-size: 17px;">RECTIFIER #1</td></tr>\n' +
-                renderBankUjiKapasitas(0, 1) +
-                spacerRow +
-                renderBankUjiKapasitas(0, 2) +
-                spacerRow +
-                renderBankUjiKapasitas(0, 3) +
-                '      </table>\n' +
-                '    </td>\n' +
-                '    <td width="50%" style="vertical-align: top; padding: 0; font-size: 16px;">\n' +
-                '      <table style="width: 100%; border-collapse: collapse; border: none; font-size: 16px;">\n' +
-                '        <tr style="font-size: 16px;"><td colspan="17" style="background-color: red; color: white; font-weight: bold; text-align: center; padding: 2px; border-bottom: 1.5px solid #000; font-size: 17px;">RECTIFIER #2</td></tr>\n' +
-                renderBankUjiKapasitas(1, 1) +
-                spacerRow +
-                renderBankUjiKapasitas(1, 2) +
-                spacerRow +
-                renderBankUjiKapasitas(1, 3) +
-                '      </table>\n' +
-                '    </td>\n' +
+                '    <td colspan="17" style="background-color: red; color: white; font-weight: bold; text-align: center; padding: 2px; border-bottom: 1.5px solid #000; border-right: 3px solid #000; font-size: 17px;">RECTIFIER #1</td>\n' +
+                '    <td colspan="17" style="background-color: red; color: white; font-weight: bold; text-align: center; padding: 2px; border-bottom: 1.5px solid #000; font-size: 17px;">RECTIFIER #2</td>\n' +
                 '  </tr>\n' +
+                '  <tr style="font-size: 16px; background-color: #f0f0f0; text-align: center; font-weight: bold;">\n' +
+                '    <!-- Rectifier 1 headers -->\n' +
+                '    <td rowspan="2" colspan="2" style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000;"></td>\n' +
+                '    <td colspan="5" style="padding: 2px; border: 1.5px solid #000;">BANK 1</td>\n' +
+                '    <td colspan="5" style="padding: 2px; border: 1.5px solid #000;">BANK 2</td>\n' +
+                '    <td colspan="5" style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000;">BANK 3</td>\n' +
+                '    <!-- Rectifier 2 headers -->\n' +
+                '    <td rowspan="2" colspan="2" style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000;"></td>\n' +
+                '    <td colspan="5" style="padding: 2px; border: 1.5px solid #000;">BANK 1</td>\n' +
+                '    <td colspan="5" style="padding: 2px; border: 1.5px solid #000;">BANK 2</td>\n' +
+                '    <td colspan="5" style="padding: 2px; border: 1.5px solid #000;">BANK 3</td>\n' +
+                '  </tr>\n' +
+                '  <tr style="font-size: 16px; background-color: #f0f0f0; text-align: center; font-weight: bold;">\n' +
+                '    <!-- Rectifier 1 subheaders -->\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">0</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">15</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">30</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">45</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">60</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">0</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">15</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">30</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">45</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">60</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">0</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">15</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">30</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">45</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000;">60</td>\n' +
+                '    <!-- Rectifier 2 subheaders -->\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">0</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">15</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">30</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">45</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">60</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">0</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">15</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">30</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">45</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">60</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">0</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">15</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">30</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">45</td>\n' +
+                '    <td style="padding: 2px; border: 1.5px solid #000;">60</td>\n' +
+                '  </tr>\n' +
+                singleTableCapacityRows +
                 '</table>\n';
 
         /* --- Step Pengujian Helper --- */
@@ -2910,31 +2995,31 @@ var generatePdfHtml = function (
                         /* INFO POP + DATA GENSET + ATS (NO CELL BORDERS) */
                         '              <table style="width: 100%; border-collapse: collapse; font-size: 8.5px; margin-bottom: 5px; border: none;">\n' +
                         '                <tr>\n' +
-                        '                  <td style="width: 20%; padding: 1px 2px; border: none;">Kode POP</td>\n' +
-                        '                  <td style="width: 30%; padding: 1px 2px; border: none;">: ' +
+                        '                  <td style="width: 14%; padding: 1px 2px; border: none; white-space: nowrap;">Kode POP</td>\n' +
+                        '                  <td style="width: 46%; padding: 1px 2px; border: none;">: ' +
                         kodePop +
                         '</td>\n' +
-                        '                  <td style="width: 25%; padding: 1px 2px; border: none;">Serial Number</td>\n' +
-                        '                  <td style="width: 25%; padding: 1px 2px; border: none;">: ' +
+                        '                  <td style="width: 19%; padding: 1px 2px; border: none; white-space: nowrap;">Serial Number</td>\n' +
+                        '                  <td style="width: 21%; padding: 1px 2px; border: none;">: ' +
                         g('snGenset') +
                         '</td>\n' +
                         '                </tr>\n' +
                         '                <tr>\n' +
-                        '                  <td style="padding: 1px 2px; border: none;">Nama POP</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none; white-space: nowrap;">Nama POP</td>\n' +
                         '                  <td style="padding: 1px 2px; border: none;">: ' +
                         namaPop +
                         '</td>\n' +
-                        '                  <td style="padding: 1px 2px; border: none;">Generator Merk</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none; white-space: nowrap;">Generator Merk</td>\n' +
                         '                  <td style="padding: 1px 2px; border: none;">: ' +
                         g('generatorMerk') +
                         '</td>\n' +
                         '                </tr>\n' +
                         '                <tr>\n' +
-                        '                  <td style="padding: 1px 2px; border: none;">Tanggal</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none; white-space: nowrap;">Tanggal</td>\n' +
                         '                  <td style="padding: 1px 2px; border: none;">: ' +
                         tanggal +
                         '</td>\n' +
-                        '                  <td style="padding: 1px 2px; border: none;">Kapasitas</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none; white-space: nowrap;">Kapasitas</td>\n' +
                         '                  <td style="padding: 1px 2px; border: none;">: ' +
                         (g('kapasitasGenset') ? g('kapasitasGenset') + ' kVA' : '') +
                         '</td>\n' +
@@ -2949,33 +3034,69 @@ var generatePdfHtml = function (
                         '                  <td style="padding: 1px 2px; border: none;"></td>\n' +
                         '                </tr>\n' +
                         '                <tr>\n' +
-                        '                  <td style="padding: 1px 2px; border: none;">Genset Merk</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none; white-space: nowrap;">Genset Merk</td>\n' +
                         '                  <td style="padding: 1px 2px; border: none;">: ' +
                         g('merkGenset') +
                         '</td>\n' +
-                        '                  <td style="padding: 1px 2px; border: none;">Type</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none; white-space: nowrap;">Type</td>\n' +
                         '                  <td style="padding: 1px 2px; border: none;">: ' +
                         g('atsType') +
                         '</td>\n' +
                         '                </tr>\n' +
                         '                <tr>\n' +
-                        '                  <td style="padding: 1px 2px; border: none;">Genset Type</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none; white-space: nowrap;">Genset Type</td>\n' +
                         '                  <td style="padding: 1px 2px; border: none;">: ' +
                         g('tipeGenset') +
                         '</td>\n' +
-                        '                  <td style="padding: 1px 2px; border: none;">Controller</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none; white-space: nowrap;">Controller</td>\n' +
                         '                  <td style="padding: 1px 2px; border: none;">: ' +
                         g('atsController') +
                         '</td>\n' +
                         '                </tr>\n' +
                         '                <tr>\n' +
-                        '                  <td style="padding: 1px 2px; border: none;">Engine Mark</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none; white-space: nowrap;">Engine Mark</td>\n' +
                         '                  <td style="padding: 1px 2px; border: none;">: ' +
                         g('engineMerk') +
                         '</td>\n' +
-                        '                  <td style="padding: 1px 2px; border: none;">COS</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none; white-space: nowrap;">COS</td>\n' +
                         '                  <td style="padding: 1px 2px; border: none;">: ' +
                         g('atsCos') +
+                        '</td>\n' +
+                        '                </tr>\n' +
+                        '              </table>\n' +
+                        /* TYPE POWERHOUSE – separate compact table */
+                        '              <table style="width: 100%; border-collapse: collapse; font-size: 8.5px; margin-bottom: 5px; border: none;">\n' +
+                        '                <tr>\n' +
+                        '                  <td colspan="2" style="padding: 2px 2px 1px; font-weight: bold; border: none;">Type Powerhouse</td>\n' +
+                        '                </tr>\n' +
+                        '                <tr>\n' +
+                        '                  <td style="width: 38%; padding: 1px 2px; border: none;">Running Hour Check (Last Month)</td>\n' +
+                        '                  <td style="width: 62%; padding: 1px 2px; border: none;">: ' +
+                        (g('runningHourLastMonth') ? g('runningHourLastMonth') + ' Hour' : '') +
+                        '</td>\n' +
+                        '                </tr>\n' +
+                        '                <tr>\n' +
+                        '                  <td style="padding: 1px 2px; border: none;">Running Hour Check (Current Month)</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none;">: ' +
+                        (g('runningHourCurrentMonth') ? g('runningHourCurrentMonth') + ' Hour' : '') +
+                        '</td>\n' +
+                        '                </tr>\n' +
+                        '                <tr>\n' +
+                        '                  <td style="padding: 1px 2px; border: none;">Durasi pengecekan lalu - sekarang</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none;">: ' +
+                        (g('durasiPengecekanLalu_Sekarang') ? g('durasiPengecekanLalu_Sekarang') + ' Hari' : '') +
+                        '</td>\n' +
+                        '                </tr>\n' +
+                        '                <tr>\n' +
+                        '                  <td style="padding: 1px 2px; border: none;">Genset model</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none;">: ' +
+                        (g('gensetModel') || '') +
+                        '</td>\n' +
+                        '                </tr>\n' +
+                        '                <tr>\n' +
+                        '                  <td style="padding: 1px 2px; border: none;">Genset Type</td>\n' +
+                        '                  <td style="padding: 1px 2px; border: none;">: ' +
+                        (g('gensetType') || '') +
                         '</td>\n' +
                         '                </tr>\n' +
                         '              </table>\n' +
@@ -3979,10 +4100,11 @@ var generatePdfHtml = function (
                 '        \n' +
                 '        <br/>\n' +
                 '        \n' +
-                '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
-                '          <tr>\n' +
-                '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
+                '        <div style="border: 2px solid #000; margin-bottom: 20px; page-break-inside: auto;">\\n' +
+
+                '          <div class="bold" style="padding: 5px 10px; border-bottom: 2px solid #000; background-color: #f0f0f0; page-break-after: avoid;">Photos :</div>\\n' +
+
+                '          <div style="padding: 10px; text-align: left;">\\n' +
                 '              ' +
                 (function () {
                         var kwhPhotos = (function () {
@@ -4075,9 +4197,10 @@ var generatePdfHtml = function (
                                 .join('');
                 })() +
                 '\n' +
-                '            </td>\n' +
-                '          </tr>\n' +
-                '        </table>\n' +
+
+                '          </div>\\n' +
+
+                '        </div>\\n' +
                 '        \n' +
                 '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
                 '          <tr>\n' +
@@ -4184,10 +4307,11 @@ var generatePdfHtml = function (
                         '        \n' +
                         '        <br/>\n' +
                         '        \n' +
-                        '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
-                        '          <tr>\n' +
-                        '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                        '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
+                        '        <div style="border: 2px solid #000; margin-bottom: 20px; page-break-inside: auto;">\\n' +
+
+                        '          <div class="bold" style="padding: 5px 10px; border-bottom: 2px solid #000; background-color: #f0f0f0; page-break-after: avoid;">Photos :</div>\\n' +
+
+                        '          <div style="padding: 10px; text-align: left;">\\n' +
                         '              ' +
                         (function () {
                                 var acpdbPhotos = (function () {
@@ -4273,9 +4397,10 @@ var generatePdfHtml = function (
                                         .join('');
                         })() +
                         '\n' +
-                        '            </td>\n' +
-                        '          </tr>\n' +
-                        '        </table>\n' +
+
+                        '          </div>\\n' +
+
+                        '        </div>\\n' +
                         '        \n' +
                         '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
                         '          <tr>\n' +
@@ -4385,10 +4510,11 @@ var generatePdfHtml = function (
                         '        \n' +
                         '        <br/>\n' +
                         '        \n' +
-                        '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
-                        '          <tr>\n' +
-                        '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                        '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
+                        '        <div style="border: 2px solid #000; margin-bottom: 20px; page-break-inside: auto;">\\n' +
+
+                        '          <div class="bold" style="padding: 5px 10px; border-bottom: 2px solid #000; background-color: #f0f0f0; page-break-after: avoid;">Photos :</div>\\n' +
+
+                        '          <div style="padding: 10px; text-align: left;">\\n' +
                         '              ' +
                         (function () {
                                 var dcpdbPhotos = (function () {
@@ -4474,9 +4600,10 @@ var generatePdfHtml = function (
                                         .join('');
                         })() +
                         '\n' +
-                        '            </td>\n' +
-                        '          </tr>\n' +
-                        '        </table>\n' +
+
+                        '          </div>\\n' +
+
+                        '        </div>\\n' +
                         '        \n' +
                         '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
                         '          <tr>\n' +
@@ -4696,10 +4823,11 @@ var generatePdfHtml = function (
                         });
                 })();
                 rectContent +=
-                        '<table style="border: 2px solid #000; border-collapse: collapse; width: 100%; margin-bottom: 20px;">\n' +
-                        '          <tr>\n' +
-                        '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                        '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
+                        '<div style="border: 2px solid #000; margin-bottom: 20px; page-break-inside: auto;">\\n' +
+
+                        '          <div class="bold" style="padding: 5px 10px; border-bottom: 2px solid #000; background-color: #f0f0f0; page-break-after: avoid;">Photos :</div>\\n' +
+
+                        '          <div style="padding: 10px; text-align: left;">\\n' +
                         (rectPhotos.length === 0
                                 ? '<div style="height: 120px;"></div>'
                                 : rectPhotos
@@ -4734,9 +4862,10 @@ var generatePdfHtml = function (
                                                 );
                                         })
                                         .join('')) +
-                        '            </td>\n' +
-                        '          </tr>\n' +
-                        '        </table>\n' +
+
+                        '          </div>\\n' +
+
+                        '        </div>\\n' +
                         '        <table style="border: 2px solid #000; border-collapse: collapse; width: 100%; margin-bottom: 20px;">\n' +
                         '          <tr>\n' +
                         '            <td colspan="2" class="bold" style="padding: 10px; height: 50px; vertical-align: top;">\n' +
@@ -4971,10 +5100,11 @@ var generatePdfHtml = function (
                 vTotalRow +
                 '        </table>\n\n' +
                 '        <br/>\n\n' +
-                '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
-                '          <tr>\n' +
-                '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
+                '        <div style="border: 2px solid #000; margin-bottom: 20px; page-break-inside: auto;">\\n' +
+
+                '          <div class="bold" style="padding: 5px 10px; border-bottom: 2px solid #000; background-color: #f0f0f0; page-break-after: avoid;">Photos :</div>\\n' +
+
+                '          <div style="padding: 10px; text-align: left;">\\n' +
                 batPhotosHtml +
                 '\n' +
                 '            </td>\n' +
@@ -4987,9 +5117,10 @@ var generatePdfHtml = function (
                 '              Comments : ' +
                 (battery.catatan || '') +
                 '\n' +
-                '            </td>\n' +
-                '          </tr>\n' +
-                '        </table>\n' +
+
+                '          </div>\\n' +
+
+                '        </div>\\n' +
                 '        </div>\n' +
                 '        <div class="page-break"></div>\n',
         );
@@ -9027,10 +9158,11 @@ var generateDownloadPdfHtml = function (
                 '        \n' +
                 '        <br/>\n' +
                 '        \n' +
-                '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
-                '          <tr>\n' +
-                '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
+                '        <div style="border: 2px solid #000; margin-bottom: 20px; page-break-inside: auto;">\\n' +
+
+                '          <div class="bold" style="padding: 5px 10px; border-bottom: 2px solid #000; background-color: #f0f0f0; page-break-after: avoid;">Photos :</div>\\n' +
+
+                '          <div style="padding: 10px; text-align: left;">\\n' +
                 '              ' +
                 (function () {
                         var kwhPhotos = (function () {
@@ -9123,9 +9255,10 @@ var generateDownloadPdfHtml = function (
                                 .join('');
                 })() +
                 '\n' +
-                '            </td>\n' +
-                '          </tr>\n' +
-                '        </table>\n' +
+
+                '          </div>\\n' +
+
+                '        </div>\\n' +
                 '        \n' +
                 '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
                 '          <tr>\n' +
@@ -9232,10 +9365,11 @@ var generateDownloadPdfHtml = function (
                         '        \n' +
                         '        <br/>\n' +
                         '        \n' +
-                        '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
-                        '          <tr>\n' +
-                        '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                        '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
+                        '        <div style="border: 2px solid #000; margin-bottom: 20px; page-break-inside: auto;">\\n' +
+
+                        '          <div class="bold" style="padding: 5px 10px; border-bottom: 2px solid #000; background-color: #f0f0f0; page-break-after: avoid;">Photos :</div>\\n' +
+
+                        '          <div style="padding: 10px; text-align: left;">\\n' +
                         '              ' +
                         (function () {
                                 var acpdbPhotos = (function () {
@@ -9321,9 +9455,10 @@ var generateDownloadPdfHtml = function (
                                         .join('');
                         })() +
                         '\n' +
-                        '            </td>\n' +
-                        '          </tr>\n' +
-                        '        </table>\n' +
+
+                        '          </div>\\n' +
+
+                        '        </div>\\n' +
                         '        \n' +
                         '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
                         '          <tr>\n' +
@@ -9433,10 +9568,11 @@ var generateDownloadPdfHtml = function (
                         '        \n' +
                         '        <br/>\n' +
                         '        \n' +
-                        '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
-                        '          <tr>\n' +
-                        '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                        '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
+                        '        <div style="border: 2px solid #000; margin-bottom: 20px; page-break-inside: auto;">\\n' +
+
+                        '          <div class="bold" style="padding: 5px 10px; border-bottom: 2px solid #000; background-color: #f0f0f0; page-break-after: avoid;">Photos :</div>\\n' +
+
+                        '          <div style="padding: 10px; text-align: left;">\\n' +
                         '              ' +
                         (function () {
                                 var dcpdbPhotos = (function () {
@@ -9522,9 +9658,10 @@ var generateDownloadPdfHtml = function (
                                         .join('');
                         })() +
                         '\n' +
-                        '            </td>\n' +
-                        '          </tr>\n' +
-                        '        </table>\n' +
+
+                        '          </div>\\n' +
+
+                        '        </div>\\n' +
                         '        \n' +
                         '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
                         '          <tr>\n' +
@@ -9744,10 +9881,11 @@ var generateDownloadPdfHtml = function (
                         });
                 })();
                 rectContent +=
-                        '<table style="border: 2px solid #000; border-collapse: collapse; width: 100%; margin-bottom: 20px;">\n' +
-                        '          <tr>\n' +
-                        '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                        '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
+                        '<div style="border: 2px solid #000; margin-bottom: 20px; page-break-inside: auto;">\\n' +
+
+                        '          <div class="bold" style="padding: 5px 10px; border-bottom: 2px solid #000; background-color: #f0f0f0; page-break-after: avoid;">Photos :</div>\\n' +
+
+                        '          <div style="padding: 10px; text-align: left;">\\n' +
                         (rectPhotos.length === 0
                                 ? '<div style="height: 120px;"></div>'
                                 : rectPhotos
@@ -9782,9 +9920,10 @@ var generateDownloadPdfHtml = function (
                                                 );
                                         })
                                         .join('')) +
-                        '            </td>\n' +
-                        '          </tr>\n' +
-                        '        </table>\n' +
+
+                        '          </div>\\n' +
+
+                        '        </div>\\n' +
                         '        <table style="border: 2px solid #000; border-collapse: collapse; width: 100%; margin-bottom: 20px;">\n' +
                         '          <tr>\n' +
                         '            <td colspan="2" class="bold" style="padding: 10px; height: 50px; vertical-align: top;">\n' +
@@ -10019,10 +10158,11 @@ var generateDownloadPdfHtml = function (
                 vTotalRow +
                 '        </table>\n\n' +
                 '        <br/>\n\n' +
-                '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
-                '          <tr>\n' +
-                '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
+                '        <div style="border: 2px solid #000; margin-bottom: 20px; page-break-inside: auto;">\\n' +
+
+                '          <div class="bold" style="padding: 5px 10px; border-bottom: 2px solid #000; background-color: #f0f0f0; page-break-after: avoid;">Photos :</div>\\n' +
+
+                '          <div style="padding: 10px; text-align: left;">\\n' +
                 batPhotosHtml +
                 '\n' +
                 '            </td>\n' +
@@ -10035,9 +10175,10 @@ var generateDownloadPdfHtml = function (
                 '              Comments : ' +
                 (battery.catatan || '') +
                 '\n' +
-                '            </td>\n' +
-                '          </tr>\n' +
-                '        </table>\n' +
+
+                '          </div>\\n' +
+
+                '        </div>\\n' +
                 '        </div>\n' +
                 '        <div class="page-break"></div>\n',
         );

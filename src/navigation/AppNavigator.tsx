@@ -38,6 +38,7 @@ import { DokumentasiScreen } from '../screens/inspection/DokumentasiScreen';
 import { ReviewPdfScreen } from '../screens/inspection/ReviewPdfScreen';
 import { ExternalAlarmScreen } from '../screens/inspection/ExternalAlarmScreen';
 import { FotIpScreen } from '../screens/inspection/FotIpScreen';
+import { useInspectionStore } from '../store/inspectionStore';
 import { FotDwdmScreen } from '../screens/inspection/FotDwdmScreen';
 
 import type { RootStackParamList, MainTabParamList } from '../types';
@@ -194,6 +195,11 @@ export function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator
+        screenListeners={{
+          beforeRemove: () => {
+            useInspectionStore.getState().saveDraftNow().catch(() => {});
+          },
+        }}
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: Colors.background },

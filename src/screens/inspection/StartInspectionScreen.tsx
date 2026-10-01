@@ -187,13 +187,13 @@ export const StartInspectionScreen: React.FC = () => {
         order: item.sortOrder,
       }));
 
-      setChecklistEntries(entries);
       setActivePop(
         selectedAsset.assetCode,
         selectedAsset.name,
         selectedAsset.location,
         selectedAsset.specifications,
       );
+      setChecklistEntries(entries);
       setAsset((selectedAsset as any).id);
 
       await new Promise<void>(resolve => setTimeout(resolve, 300));

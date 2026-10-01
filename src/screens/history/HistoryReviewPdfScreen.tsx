@@ -31,7 +31,7 @@ import RNHTMLtoPDF, { generatePDF } from 'react-native-html-to-pdf';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { Colors, Typography, Spacing, BorderRadius, Shadow } from '../../theme';
-import { Header, showAlert } from '../../components/common';
+import { Header, showAlert, AnimatedBackground } from '../../components/common';
 import { resolveAllTelegramUrisInObject } from '../../services/telegramStorage';
 import database from '../../database';
 import { Inspection, Asset } from '../../database/models';
@@ -197,6 +197,9 @@ export const HistoryReviewPdfScreen: React.FC = () => {
         html: downloadableHtml,
         fileName: pdfFileName,
         directory: 'docs',
+        // Match the HTML template viewport so CSS widths render correctly in the PDF
+        width: 1500,
+        height: 2100,
       };
 
       try {
@@ -394,7 +397,7 @@ export const HistoryReviewPdfScreen: React.FC = () => {
           onBack={() => navigation.goBack()}
         />
         <View style={styles.loadingContainer}>
-          <Text style={styles.emptyIcon}>📄</Text>
+          <Text style={styles.emptyIcon}>--</Text>
           <Text style={styles.emptyTitle}>Data Review Tidak Tersedia</Text>
           <Text style={styles.emptySubtitle}>
             Laporan ini tidak memiliki data form yang tersimpan
@@ -412,7 +415,8 @@ export const HistoryReviewPdfScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <AnimatedBackground>
+      <View style={styles.container}>
       {/* Header */}
       <Header
         title="Review PDF"
@@ -601,13 +605,14 @@ export const HistoryReviewPdfScreen: React.FC = () => {
         </View>
       </View>
     </View>
+  </AnimatedBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: 'transparent',
   },
   loadingContainer: {
     flex: 1,

@@ -114,7 +114,7 @@ export const ChecklistScreen: React.FC = () => {
 
         {entry.type === 'photo' && (
           <TouchableOpacity style={styles.photoInput}>
-            <Text style={styles.photoInputIcon}>📸</Text>
+            <Text style={styles.photoInputIcon}>Foto</Text>
             <Text style={styles.photoInputText}>Ambil Foto</Text>
           </TouchableOpacity>
         )}
@@ -208,7 +208,7 @@ const PassFailInput: React.FC<{
       onPress={() => onChange(value === 'true' ? '' : 'true')}
     >
       <Text style={[styles.passFailText, value === 'true' && styles.passText]}>
-        ✓ PASS
+        PASS
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
@@ -216,7 +216,7 @@ const PassFailInput: React.FC<{
       onPress={() => onChange(value === 'false' ? '' : 'false')}
     >
       <Text style={[styles.passFailText, value === 'false' && styles.failText]}>
-        ✗ FAIL
+        FAIL
       </Text>
     </TouchableOpacity>
   </View>

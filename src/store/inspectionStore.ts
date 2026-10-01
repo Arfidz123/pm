@@ -7,6 +7,7 @@ import type { ItemStatus, InspectionType } from '../types';
 import {
   saveInspectionDraft,
   clearInspectionDraft,
+  DRAFT_INSPECTION_ID,
 } from '../services/draftService';
 import {
   findPopMasterRecord,
@@ -151,15 +152,21 @@ const scheduleAutoSave = (getState: () => InspectionState) => {
     if (s.activePopId) {
       saveInspectionDraft(s).catch(e => console.warn('Auto-save error:', e));
     }
-  }, 1000);
+  }, 400);
 };
 
 export const useInspectionStore = create<InspectionState>()((set, get) => ({
   ...initialState,
 
-  setAsset: assetId => set({ currentAssetId: assetId }),
+  setAsset: assetId => {
+    set({ currentAssetId: assetId });
+    scheduleAutoSave(get);
+  },
 
-  setInspectionType: type => set({ inspectionType: type }),
+  setInspectionType: type => {
+    set({ inspectionType: type });
+    scheduleAutoSave(get);
+  },
 
   addPhoto: (path, customTs, customCoords) => {
     set(state => {
@@ -199,7 +206,7 @@ export const useInspectionStore = create<InspectionState>()((set, get) => ({
     scheduleAutoSave(get);
   },
 
-  addPhotoBySection: (section, path, customTs, customCoords) =>
+  addPhotoBySection: (section, path, customTs, customCoords) => {
     set(state => {
       const sectionData = state.formData[section] || {};
       const sectionPhotos: string[] = sectionData.photos || [];
@@ -236,7 +243,9 @@ export const useInspectionStore = create<InspectionState>()((set, get) => ({
           },
         },
       };
-    }),
+    });
+    scheduleAutoSave(get);
+  },
 
   addCategorizedPhoto: (
     section,
@@ -467,6 +476,17 @@ export const useInspectionStore = create<InspectionState>()((set, get) => ({
     set(state => ({ currentStep: Math.max(0, state.currentStep - 1) })),
 
   setActivePop: (id, name, location, specifications) => {
+    const currentActiveId = get().activePopId;
+    // Guard: Jika POP yang sama sudah aktif, jangan reset form dan jangan hapus data yang sudah diisi!
+    if (currentActiveId && currentActiveId === id && id !== '') {
+      set({
+        activePopName: name || get().activePopName,
+        activePopLocation: location || get().activePopLocation,
+      });
+      scheduleAutoSave(get);
+      return;
+    }
+
     // Guard: jangan reset formData jika sedang mode edit (data sudah di-load oleh loadExistingInspection)
     if (get().editingInspectionId) {
       set({
@@ -474,6 +494,7 @@ export const useInspectionStore = create<InspectionState>()((set, get) => ({
         activePopName: name || null,
         activePopLocation: location || null,
       });
+      scheduleAutoSave(get);
       return;
     }
     const inspectionStartTime = new Date().toISOString();
@@ -602,7 +623,10 @@ export const useInspectionStore = create<InspectionState>()((set, get) => ({
       })
       .catch(() => {});
   },
-  setCurrentLocation: loc => set({ currentLocation: loc }),
+  setCurrentLocation: loc => {
+    set({ currentLocation: loc });
+    scheduleAutoSave(get);
+  },
   setEditingInspectionId: id => set({ editingInspectionId: id }),
 
   updateFormData: (section: string, data: any) => {
@@ -626,49 +650,107 @@ export const useInspectionStore = create<InspectionState>()((set, get) => ({
           typeof insp.formData === 'string'
             ? JSON.parse(insp.formData)
             : insp.formData;
-      } catch (e) {}
+      } catch (e) {
+        parsedForm = {};
+      }
+    } else if (insp && typeof insp === 'object' && !Array.isArray(insp)) {
+      // Fallback: jika insp sendiri merupakan objek formData
+      parsedForm = { ...insp };
     }
+
     let parsedPhotos: any[] = [];
     if (insp.photos) {
       try {
         parsedPhotos =
           typeof insp.photos === 'string'
             ? JSON.parse(insp.photos)
-            : insp.photos;
-      } catch (e) {}
+            : Array.isArray(insp.photos)
+            ? insp.photos
+            : [];
+      } catch (e) {
+        parsedPhotos = [];
+      }
+    } else if (Array.isArray(parsedForm.photos)) {
+      parsedPhotos = parsedForm.photos;
     }
 
-    const pTimestamps = parsedForm.photoTimestamps || {};
-    const pCoordinates = parsedForm.photoCoordinates || {};
-    const pCategories = parsedForm.photoCategories || {};
+    const meta = parsedForm._draftMeta || {};
+    const pTimestamps =
+      insp.photoTimestamps ||
+      meta.photoTimestamps ||
+      parsedForm.photoTimestamps ||
+      {};
+    const pCoordinates =
+      insp.photoCoordinates ||
+      meta.photoCoordinates ||
+      parsedForm.photoCoordinates ||
+      {};
+    const pCategories =
+      insp.photoCategories ||
+      meta.photoCategories ||
+      parsedForm.photoCategories ||
+      {};
 
     const popId =
       (asset as any)?.assetCode ||
+      (asset as any)?.id ||
       insp.assetId ||
+      meta.activePopId ||
       parsedForm?.infoPop?.popId ||
       '';
-    const popName = (asset as any)?.name || parsedForm?.infoPop?.namaPop || '';
+    const popName =
+      (asset as any)?.name ||
+      insp.popName ||
+      meta.activePopName ||
+      parsedForm?.infoPop?.namaPop ||
+      popId;
     const popLocation =
-      (asset as any)?.location || parsedForm?.infoPop?.alamat || '';
+      (asset as any)?.location ||
+      insp.popLocation ||
+      meta.activePopLocation ||
+      parsedForm?.infoPop?.alamat ||
+      '';
 
     const draftEntries =
-      parsedForm._draftMeta?.checklistEntries ||
       insp.checklistEntries ||
+      meta.checklistEntries ||
+      parsedForm.checklistEntries ||
       [];
 
+    const isDraftRecord =
+      insp.id === DRAFT_INSPECTION_ID ||
+      insp.status === 'draft' ||
+      !insp.id;
+
+    const finalEditingId = isDraftRecord
+      ? (meta.editingInspectionId || insp.editingInspectionId || null)
+      : insp.id;
+    const finalInspectionId = isDraftRecord ? null : insp.id;
+
+    const loc =
+      insp.currentLocation ||
+      meta.currentLocation ||
+      parsedForm.currentLocation ||
+      null;
+
     set({
-      currentAssetId: (asset as any)?.id || insp.assetId || null,
-      editingInspectionId: insp.id,
-      inspectionId: insp.id,
-      originalInspectionDate: insp.inspectionDate || Date.now(),
-      inspectionType: (insp.type as any) || 'preventive',
-      photos: parsedPhotos.length > 0 ? parsedPhotos : parsedForm.photos || [],
-      checklistEntries: draftEntries.length > 0 ? draftEntries : [],
+      currentAssetId:
+        (asset as any)?.id ||
+        insp.assetId ||
+        meta.currentAssetId ||
+        null,
+      editingInspectionId: finalEditingId,
+      inspectionId: finalInspectionId,
+      originalInspectionDate:
+        insp.inspectionDate || meta.originalInspectionDate || Date.now(),
+      inspectionType: (insp.type as any) || meta.inspectionType || 'preventive',
+      photos: parsedPhotos,
+      checklistEntries: draftEntries,
       notes: insp.notes || parsedForm.notes || '',
       activePopId: popId,
       activePopName: popName,
       activePopLocation: popLocation,
-      currentLocation: parsedForm.currentLocation || null,
+      currentLocation: loc,
       photoTimestamps: pTimestamps,
       photoCoordinates: pCoordinates,
       photoCategories: pCategories,
@@ -687,13 +769,19 @@ export const useInspectionStore = create<InspectionState>()((set, get) => ({
   },
 
   resetInspection: () => {
-    if (draftTimeout) clearTimeout(draftTimeout);
+    if (draftTimeout) {
+      clearTimeout(draftTimeout);
+      draftTimeout = null;
+    }
     clearInspectionDraft().catch(e => console.warn('Clear draft error:', e));
     set(initialState);
   },
 
   saveDraftNow: async () => {
-    if (draftTimeout) clearTimeout(draftTimeout);
+    if (draftTimeout) {
+      clearTimeout(draftTimeout);
+      draftTimeout = null;
+    }
     return await saveInspectionDraft(get());
   },
 }));

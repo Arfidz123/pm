@@ -120,6 +120,17 @@ export const saveInspectionDraft = async (
       // Record doesn't exist yet, which is fine
     }
 
+    if (!existingDraft) {
+      try {
+        const drafts = await inspectionsCollection
+          .query(Q.where('status', 'draft'))
+          .fetch();
+        if (drafts.length > 0) {
+          existingDraft = drafts[0];
+        }
+      } catch (e) {}
+    }
+
     await database.write(async () => {
       if (existingDraft) {
         await existingDraft.update(insp => {

@@ -138,7 +138,7 @@ export const CapturePhotoScreen: React.FC = () => {
           onPress={handleTakePhoto}
           activeOpacity={0.7}
         >
-          <Text style={styles.cameraIcon}>📸</Text>
+          <Text style={styles.cameraIcon}>Foto</Text>
           <Text style={styles.cameraTitle}>Ketuk untuk Mengambil Foto</Text>
           <Text style={styles.cameraSubtitle}>
             Ambil foto kondisi aset sebelum pengerjaan
@@ -158,14 +158,14 @@ export const CapturePhotoScreen: React.FC = () => {
               renderItem={({ item, index }) => (
                 <View style={styles.photoThumb}>
                   <View style={styles.photoPlaceholder}>
-                    <Text style={styles.photoPlaceholderText}>📷</Text>
+                    <Text style={styles.photoPlaceholderText}>Foto</Text>
                     <Text style={styles.photoIndex}>#{index + 1}</Text>
                   </View>
                   <TouchableOpacity
                     style={styles.removePhoto}
                     onPress={() => removePhoto(index)}
                   >
-                    <Text style={styles.removePhotoIcon}>✕</Text>
+                    <Text style={styles.removePhotoIcon}>X</Text>
                   </TouchableOpacity>
                 </View>
               )}

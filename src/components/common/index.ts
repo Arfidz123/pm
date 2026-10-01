@@ -19,3 +19,4 @@ export type { DropdownModalPickerProps } from './DropdownModalPicker';
 export { ImageZoomModal } from './ImageZoomModal';
 export { AcpdbIcon, DcpdbIcon } from './CustomPowerIcons';
 export type { CustomPowerIconProps } from './CustomPowerIcons';
+export { AnimatedBackground } from './AnimatedBackground';

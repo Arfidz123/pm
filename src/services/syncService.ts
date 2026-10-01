@@ -15,6 +15,7 @@ import {
   uploadFileToTelegram,
   uploadFilesInBatchToTelegram,
 } from './telegramStorage';
+import { getCurrentFormattedTimestamp } from '../utils/helpers';
 
 /**
  * Recursively collects all image URIs from an object (formData or arrays)
@@ -126,8 +127,8 @@ export const processInspectionMediaForCloud = async (data: {
       remotePdfPath.startsWith('content://'))
   ) {
     try {
-      const caption = `📄 Laporan PM: ${data.popName || 'POP'} (${data.popId || ''
-        })\n📅 Tanggal: ${new Date().toLocaleDateString('id-ID')}`;
+      const caption = `Laporan PM: ${data.popName || 'POP'} (${data.popId || ''
+        })\nTanggal: ${new Date().toLocaleDateString('id-ID')}`;
       const uploadedPdf = await uploadFileToTelegram(remotePdfPath, caption);
       if (
         uploadedPdf &&
@@ -142,11 +143,37 @@ export const processInspectionMediaForCloud = async (data: {
     }
   }
 
-  // 2. Upload photos to Telegram (batch upload with Telegram file_id URIs)
+  // 2. Upload photos to Telegram (batch upload with Telegram file_id URIs & burned-in timestamp)
   let photoUrlMap: Record<string, string> = {};
   if (allPhotoUris.length > 0) {
     try {
-      photoUrlMap = await uploadFilesInBatchToTelegram(allPhotoUris, '', 2);
+      const photoTimestamps = data.formData?.photoTimestamps || {};
+      const photoCoordinates = data.formData?.photoCoordinates || {};
+      const photoCategories = data.formData?.photoCategories || {};
+      // Gunakan alamat GPS asli (reverse geocoded) bukan nama POP
+      const gpsAddress =
+        data.formData?.infoPop?.alamat ||
+        data.formData?.infoPop?.activePopLocation ||
+        '';
+
+      const metadataMap: Record<string, any> = {};
+      allPhotoUris.forEach(uri => {
+        // Gunakan koordinat per-foto sebagai fallback address jika alamat GPS kosong
+        const perPhotoCoords = photoCoordinates[uri] || '';
+        metadataMap[uri] = {
+          timestamp: photoTimestamps[uri] || getCurrentFormattedTimestamp(),
+          coordinates: perPhotoCoords,
+          label: photoCategories[uri] || '',
+          address: gpsAddress || perPhotoCoords,
+        };
+      });
+
+      photoUrlMap = await uploadFilesInBatchToTelegram(
+        allPhotoUris,
+        '',
+        2,
+        metadataMap,
+      );
       remotePhotos = remotePhotos.map(p => photoUrlMap[p] || p);
     } catch (photoErr) {
       console.warn('Photos upload to Telegram warning:', photoErr);
@@ -381,6 +408,7 @@ export const restoreInspectionsFromFirebase = async () => {
       if (allSyncedLocal.length > 0) {
         await database.write(async () => {
           for (const local of allSyncedLocal) {
+            if (local.id === 'active_inspection_draft' || local.status === 'draft') continue;
             await local.destroyPermanently();
           }
         });
@@ -402,6 +430,7 @@ export const restoreInspectionsFromFirebase = async () => {
         .fetch();
 
       for (const local of allSyncedLocal) {
+        if (local.id === 'active_inspection_draft' || local.status === 'draft') continue;
         if (!remoteIdSet.has(local.id)) {
           await local.destroyPermanently();
           restoredCount++;

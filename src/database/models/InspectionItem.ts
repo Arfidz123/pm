@@ -42,7 +42,7 @@ export default class InspectionItem extends Model {
   /** Get display value with unit */
   get displayValue(): string {
     if (this.type === 'pass_fail') {
-      return this.value === 'true' ? 'PASS ✓' : 'FAIL ✗';
+      return this.value === 'true' ? 'PASS' : 'FAIL';
     }
     if (this.unit) {
       return `${this.value} ${this.unit}`;

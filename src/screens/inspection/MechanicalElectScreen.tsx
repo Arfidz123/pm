@@ -108,6 +108,8 @@ export const MechanicalElectScreen: React.FC = () => {
 
     // Grounding
     grPengukuran: '',
+    systemGrounding: '',
+    systemGroundingKet: '',
     grStatusKet: '',
     grStatus: '',
     grPetirKet: '',
@@ -532,7 +534,14 @@ export const MechanicalElectScreen: React.FC = () => {
               </View>
 
               {renderCheckRow(
-                'Grounding Status',
+                'System Grounding',
+                'systemGrounding',
+                'systemGroundingKet',
+                ['Single', 'Double (Ganda)'],
+                165,
+              )}
+              {renderCheckRow(
+                'Status Grounding',
                 'grStatus',
                 'grStatusKet',
                 ['OK', 'NOK', 'N/A'],

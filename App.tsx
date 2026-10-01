@@ -4,7 +4,16 @@
  */
 
 import React, {useEffect, useState, useRef} from 'react';
-import {StatusBar, View, Text, StyleSheet, Animated, Easing} from 'react-native';
+import {
+  StatusBar,
+  View,
+  Text,
+  StyleSheet,
+  Animated,
+  Easing,
+  AppState,
+  TouchableOpacity,
+} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {DatabaseProvider} from '@nozbe/watermelondb/DatabaseProvider';
 import {AppNavigator} from './src/navigation/AppNavigator';
@@ -12,8 +21,58 @@ import {AlertProvider} from './src/components/common';
 import database from './src/database';
 import {seedDefaultTemplates} from './src/database/seeds';
 import {useAppStore} from './src/store/appStore';
+import {useInspectionStore} from './src/store/inspectionStore';
 import {restoreInspectionsFromFirebase} from './src/services/syncService';
 import {Colors, Typography, Spacing} from './src/theme';
+
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = {hasError: false, error: null};
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return {hasError: true, error};
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Unhandled React Error caught by ErrorBoundary:', error, errorInfo);
+  }
+
+  handleReload = () => {
+    this.setState({hasError: false, error: null});
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={boundaryStyles.container}>
+          <Text style={boundaryStyles.icon}>⚠️</Text>
+          <Text style={boundaryStyles.title}>Terjadi Kendala Tampilan</Text>
+          <Text style={boundaryStyles.desc}>
+            Aplikasi mendeteksi kesalahan tak terduga. Seluruh data pengerjaan Anda tetap aman dalam draft lokal SQLite.
+          </Text>
+          <TouchableOpacity
+            style={boundaryStyles.btn}
+            onPress={this.handleReload}
+            activeOpacity={0.8}>
+            <Text style={boundaryStyles.btnText}>Muat Ulang Halaman</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function App() {
   return (
@@ -21,7 +80,9 @@ function App() {
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <DatabaseProvider database={database}>
         <AlertProvider>
-          <AppInitializer />
+          <ErrorBoundary>
+            <AppInitializer />
+          </ErrorBoundary>
         </AlertProvider>
       </DatabaseProvider>
     </SafeAreaProvider>
@@ -82,6 +143,17 @@ function AppInitializer() {
     spin.start();
 
     return () => { pulse.stop(); spin.stop(); };
+  }, []);
+
+  // Auto-save draft when technician leaves app, switches apps, or locks phone
+  useEffect(() => {
+    const handleAppStateChange = (nextState: string) => {
+      if (nextState.match(/inactive|background/)) {
+        useInspectionStore.getState().saveDraftNow().catch(() => {});
+      }
+    };
+    const sub = AppState.addEventListener('change', handleAppStateChange);
+    return () => sub.remove();
   }, []);
 
   const initializeApp = async () => {
@@ -288,6 +360,48 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     marginTop: Spacing.sm,
     letterSpacing: 0.5,
+  },
+});
+
+const boundaryStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.xl,
+  },
+  icon: {
+    fontSize: 52,
+    marginBottom: Spacing.md,
+  },
+  title: {
+    ...Typography.h2,
+    color: Colors.text,
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+  },
+  desc: {
+    ...Typography.body,
+    color: Colors.textSecondary,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: Spacing.xl,
+  },
+  btn: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: 12,
+  },
+  btnText: {
+    ...Typography.button,
+    color: Colors.white,
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });
 

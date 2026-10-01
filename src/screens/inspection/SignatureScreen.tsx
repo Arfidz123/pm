@@ -152,7 +152,7 @@ export const SignatureScreen: React.FC = () => {
 
       showAlert({
         type: 'success',
-        title: '✅ PM Selesai!',
+        title: 'PM Selesai!',
         message: 'Data PM berhasil disimpan dan laporan PDF telah dibuat.',
         buttons: [
           {
@@ -203,7 +203,7 @@ export const SignatureScreen: React.FC = () => {
         >
           {signed ? (
             <View style={styles.signedContent}>
-              <Text style={styles.signedCheck}>✓</Text>
+              <Text style={styles.signedCheck}>V</Text>
               <Text style={styles.signedName}>
                 {inspectorName || 'Teknisi'}
               </Text>
@@ -217,7 +217,7 @@ export const SignatureScreen: React.FC = () => {
             </View>
           ) : (
             <View style={styles.unsignedContent}>
-              <Text style={styles.signatureIcon}>✍️</Text>
+              <Text style={styles.signatureIcon}>TTD</Text>
               <Text style={styles.signaturePrompt}>
                 Ketuk untuk Tanda Tangan
               </Text>
@@ -251,7 +251,7 @@ export const SignatureScreen: React.FC = () => {
         </View>
 
         <Button
-          title="✅ Submit Laporan"
+          title="Submit Laporan"
           onPress={handleSubmit}
           variant="primary"
           size="lg"

@@ -41,7 +41,7 @@ import {
   Shadow,
   FontFamily,
 } from '../../theme';
-import { Button, StatusBadge, showAlert } from '../../components/common';
+import { Button, StatusBadge, showAlert, AnimatedBackground } from '../../components/common';
 import database from '../../database';
 import { Inspection, InspectionItem, Asset } from '../../database/models';
 import { useInspectionStore } from '../../store/inspectionStore';
@@ -243,16 +243,21 @@ export const InspectionDetailScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
+    <AnimatedBackground>
+      <View style={styles.container}>
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor="transparent"
+          translucent
+        />
 
-      {/* Premium Header */}
-      <LinearGradient
-        colors={['#3B82F6', '#1E40AF']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.headerGradient}
-      >
+        {/* Premium Header */}
+        <LinearGradient
+          colors={['rgba(30, 64, 175, 0.75)', 'rgba(7, 13, 29, 0.25)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
+        >
         {/* Back button */}
         <Animated.View
           style={{
@@ -503,13 +508,14 @@ export const InspectionDetailScreen: React.FC = () => {
         </Animated.View>
       </ScrollView>
     </View>
+  </AnimatedBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: 'transparent',
   },
   loadingContainer: {
     flex: 1,

@@ -63,6 +63,13 @@ export const GensetScreen: React.FC = () => {
     tipeGenset: gs.tipeGenset ?? '',
     engineMerk: gs.engineMerk ?? gs.engineMark ?? '',
 
+    // Type Powerhouse
+    runningHourLastMonth: gs.runningHourLastMonth ?? '',
+    runningHourCurrentMonth: gs.runningHourCurrentMonth ?? '',
+    durasiPengecekanLalu_Sekarang: gs.durasiPengecekanLalu_Sekarang ?? '',
+    gensetModel: gs.gensetModel ?? '',
+    gensetType: gs.gensetType ?? '',
+
     // 3. ATS
     atsType: gs.atsType ?? '',
     atsController: gs.atsController ?? '',
@@ -89,7 +96,6 @@ export const GensetScreen: React.FC = () => {
     kapasitasTangkiUtama: gs.kapasitasTangkiUtama ?? '',
     sisaBbmPengecekanBulanLalu: gs.sisaBbmPengecekkanBulanLalu ?? '',
     sisaBbmPengecekanBulanSekarang: gs.sisaBbmPengecekkanBulanSekarang ?? '',
-    durasiPengecekanLalu_Sekarang: gs.durasiPengecekanLalu_Sekarang ?? '',
     pengisianBbm: gs.pengisianBbm ?? '',
     levelIndikatorTangkiBensin: gs.levelIndikatorTangkiBensin ?? '',
     kapasitasTangkiEksternal: gs.kapasitasTangkiEksternal ?? '',
@@ -288,6 +294,10 @@ export const GensetScreen: React.FC = () => {
         sisaBbmPengecekanBulanLalu: '',
         sisaBbmPengecekanBulanSekarang: '',
         durasiPengecekanLalu_Sekarang: '',
+        runningHourLastMonth: '',
+        runningHourCurrentMonth: '',
+        gensetModel: '',
+        gensetType: '',
         pengisianBbm: '',
         levelIndikatorTangkiBensin: '',
         kapasitasTangkiEksternal: '',
@@ -537,6 +547,7 @@ export const GensetScreen: React.FC = () => {
     key: string,
     placeholder: string = '—',
     isNumeric: boolean = true,
+    unit?: string,
   ) => {
     return (
       <View style={styles.measurementRow}>
@@ -552,6 +563,7 @@ export const GensetScreen: React.FC = () => {
               placeholderTextColor={Colors.textMuted}
             />
           </View>
+          {unit ? <Text style={styles.measurementUnitText}>{unit}</Text> : null}
         </View>
       </View>
     );
@@ -622,6 +634,7 @@ export const GensetScreen: React.FC = () => {
                     <Text style={styles.inputLabel}>Kapasitas</Text>
                     <TextInput
                       style={styles.textInput}
+                      keyboardType="numeric"
                       value={form.kapasitasGenset}
                       onChangeText={val => updateForm('kapasitasGenset', val)}
                       placeholder="—"
@@ -690,6 +703,63 @@ export const GensetScreen: React.FC = () => {
                 </View>
                 <View style={styles.col} />
               </View>
+            </View>
+          </View>
+        )}
+
+        {/* Card: Type Powerhouse */}
+        {form.gensetAda === 'Ada' && (
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardTitleRow}>
+                <Text style={styles.cardTitle}>Type Powerhouse</Text>
+              </View>
+            </View>
+            <View style={styles.titleDivider} />
+
+            <View style={styles.cardBody}>
+              <View style={styles.row}>
+                <View style={styles.col}>
+                  <Text style={styles.inputLabel}>Genset model</Text>
+                  {renderDropdownSelect(
+                    'gensetModel',
+                    form.gensetModel,
+                    val => updateForm('gensetModel', val),
+                    ['Fixed', 'Mobile'],
+                    undefined,
+                    'Pilih Model Genset',
+                  )}
+                </View>
+                <View style={styles.col}>
+                  <Text style={styles.inputLabel}>Genset Type</Text>
+                  {renderDropdownSelect(
+                    'gensetType',
+                    form.gensetType,
+                    val => updateForm('gensetType', val),
+                    ['Silent', 'Open'],
+                    undefined,
+                    'Pilih Tipe Genset',
+                  )}
+                </View>
+              </View>
+              {renderMeasurementRow(
+                'Running Hour Check (Last Month)',
+                'runningHourLastMonth',
+                '—',
+                true,
+              )}
+              {renderMeasurementRow(
+                'Running Hour Check (Current Month)',
+                'runningHourCurrentMonth',
+                '—',
+                true,
+              )}
+              {renderMeasurementRow(
+                'Durasi pengecekan lalu - sekarang',
+                'durasiPengecekanLalu_Sekarang',
+                '—',
+                true,
+              )}
             </View>
           </View>
         )}
@@ -820,15 +890,8 @@ export const GensetScreen: React.FC = () => {
                 undefined,
                 165,
               )}
-              <View style={{ marginBottom: Spacing.sm }}>
-                <Text style={styles.inputLabel}>Pompa Solar</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={form.pompaSolar}
-                  onChangeText={val => updateForm('pompaSolar', val)}
-                  placeholder="—"
-                  placeholderTextColor={Colors.textMuted}
-                />
+              <View style={styles.subHeadingContainer}>
+                <Text style={styles.subHeading}>Pompa Solar</Text>
               </View>
               {renderCheckRow(
                 'Test Pompa Kondisi Auto',
@@ -870,10 +933,6 @@ export const GensetScreen: React.FC = () => {
               {renderMeasurementRow(
                 'Sisa BBM Pengecekan Bulan Sekarang',
                 'sisaBbmPengecekanBulanSekarang',
-              )}
-              {renderMeasurementRow(
-                'Durasi Pengecekan Lalu - Sekarang',
-                'durasiPengecekanLalu_Sekarang',
               )}
               {renderMeasurementRow('Pengisian BBM', 'pengisianBbm')}
               {renderMeasurementRow(
@@ -1164,7 +1223,7 @@ export const GensetScreen: React.FC = () => {
               <TextInput
                 style={[
                   styles.textInput,
-                  { height: 75, textAlignVertical: 'top' },
+                  { height: 90, textAlignVertical: 'top' },
                 ]}
                 multiline
                 numberOfLines={3}
@@ -1739,5 +1798,12 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     padding: 0,
     margin: 0,
+  },
+  measurementUnitText: {
+    color: Colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 8,
+    minWidth: 32,
   },
 });

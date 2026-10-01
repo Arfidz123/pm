@@ -74,17 +74,17 @@ export function getRelativeTime(timestamp: number): string {
 }
 
 /**
- * Category icon mapping (emoji)
+ * Category icon mapping (text label)
  */
 export function getCategoryIcon(category: string): string {
   const icons: Record<string, string> = {
-    hvac: '❄️',
-    cooling: '🧊',
-    electrical: '⚡',
-    plumbing: '🔧',
-    other: '🔩',
+    hvac: 'HVAC',
+    cooling: 'AC',
+    electrical: 'ELEC',
+    plumbing: 'PLMB',
+    other: 'MISC',
   };
-  return icons[category] || '🔩';
+  return icons[category] || 'MISC';
 }
 
 /**

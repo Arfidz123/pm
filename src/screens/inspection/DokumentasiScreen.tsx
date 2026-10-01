@@ -372,7 +372,7 @@ export const DokumentasiScreen: React.FC = () => {
                       : styles.minRequirementBadgeTextWarning,
                   ]}
                 >
-                  {activeFolderInfo.count >= 2 ? 'Minimal 2 ✓' : 'Minimal 2'}
+                  {activeFolderInfo.count >= 2 ? 'Minimal 2 OK' : 'Minimal 2'}
                 </Text>
               </View>
             ) : null}

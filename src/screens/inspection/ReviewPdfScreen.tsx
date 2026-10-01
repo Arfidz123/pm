@@ -25,7 +25,7 @@ import RNHTMLtoPDF, { generatePDF } from 'react-native-html-to-pdf';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { Colors, Typography, Spacing, BorderRadius, Shadow } from '../../theme';
-import { Header, showAlert } from '../../components/common';
+import { Header, showAlert, AnimatedBackground } from '../../components/common';
 import { useInspectionStore } from '../../store/inspectionStore';
 import {
   generatePdfSections,
@@ -161,6 +161,9 @@ export const ReviewPdfScreen: React.FC = () => {
       html: downloadableHtml,
       fileName: pdfFileName,
       directory: 'docs',
+      // Match the HTML template viewport so CSS widths render correctly in the PDF
+      width: 1500,
+      height: 2100,
     };
 
     let pdfPath = '';
@@ -215,7 +218,7 @@ export const ReviewPdfScreen: React.FC = () => {
       const inspectionId = editingInspectionId || `insp_${timestamp}`;
       const effectiveInspectionDate = originalInspectionDate || timestamp;
 
-      // 1. Simpan ke database lokal WatermelonDB
+      // 1. Simpan ke database lokal WatermelonDB (CEPAT - tanpa internet)
       try {
         let existingRecord: any = null;
         if (editingInspectionId) {
@@ -267,63 +270,7 @@ export const ReviewPdfScreen: React.FC = () => {
         console.warn('Error saving POP PM profile:', profileErr);
       }
 
-      // 2. Upload PDF ke Telegram (HANYA SEKALI) dan simpan ke Firestore
-      try {
-        const cloudRes = await saveInspectionDirectlyToFirebase({
-          id: inspectionId,
-          assetId: activePopId || 'unknown',
-          inspectorName: 'Teknisi',
-          inspectionDate: effectiveInspectionDate,
-          type: 'PM',
-          status: 'completed',
-          pdfPath: pdfPath,
-          formData: mergedFormData,
-          photos: photos || [],
-          notes: (mergedFormData as any)?.infoPop?.catatan || '',
-        });
-
-        // Update local DB with Telegram remote URL & Cloud Sync status
-        if (cloudRes) {
-          const isUploaded = Boolean(
-            cloudRes.isSynced ||
-              (cloudRes.remotePdfPath &&
-                (cloudRes.remotePdfPath.startsWith('http://') ||
-                  cloudRes.remotePdfPath.startsWith('https://'))),
-          );
-          try {
-            const inspRecord = await database
-              .get('inspections')
-              .find(inspectionId);
-            if (inspRecord) {
-              await database.write(async () => {
-                await inspRecord.update((i: any) => {
-                  if (isUploaded) {
-                    i.isSynced = true;
-                  }
-                  if (cloudRes.remotePdfPath) {
-                    i.pdfPath = cloudRes.remotePdfPath;
-                  }
-                  if (
-                    cloudRes.remotePhotos &&
-                    Array.isArray(cloudRes.remotePhotos) &&
-                    cloudRes.remotePhotos.length > 0
-                  ) {
-                    i.photos = JSON.stringify(cloudRes.remotePhotos);
-                  }
-                  if (cloudRes.data?.form_data) {
-                    i.formData = JSON.stringify(cloudRes.data.form_data);
-                  }
-                });
-              });
-            }
-          } catch (updateErr) {
-            console.warn('Error updating local DB sync status:', updateErr);
-          }
-        }
-      } catch (cloudErr) {
-        console.warn('Direct Telegram / Firestore upload error:', cloudErr);
-      }
-
+      // Data berhasil disimpan lokal - langsung selesai, jangan tunggu upload
       setSaving(false);
       resetInspection();
 
@@ -331,11 +278,12 @@ export const ReviewPdfScreen: React.FC = () => {
         type: 'success',
         title: 'Laporan Berhasil Disimpan!',
         message:
-          'Data inspeksi dan file PDF laporan telah berhasil disimpan serta terkirim ke Channel Telegram.',
+          'Data inspeksi dan file PDF berhasil disimpan. Upload ke cloud berjalan di background.',
         buttons: [
           {
             text: 'OK',
             onPress: () => {
+              resetInspection();
               navigation.reset({
                 index: 0,
                 routes: [{ name: 'MainTabs' as any }],
@@ -344,6 +292,68 @@ export const ReviewPdfScreen: React.FC = () => {
           },
         ],
       });
+
+      // 2. Upload PDF ke Telegram & Firestore di BACKGROUND (tidak blocking UI)
+      const cloudFormData = { ...mergedFormData };
+      const cloudPhotos = [...(photos || [])];
+      setTimeout(async () => {
+        try {
+          const cloudRes = await saveInspectionDirectlyToFirebase({
+            id: inspectionId,
+            assetId: activePopId || 'unknown',
+            inspectorName: 'Teknisi',
+            inspectionDate: effectiveInspectionDate,
+            type: 'PM',
+            status: 'completed',
+            pdfPath: pdfPath,
+            formData: cloudFormData,
+            photos: cloudPhotos,
+            notes: (cloudFormData as any)?.infoPop?.catatan || '',
+          });
+
+          // Update local DB with Telegram remote URL & Cloud Sync status
+          if (cloudRes) {
+            const isUploaded = Boolean(
+              cloudRes.isSynced ||
+                (cloudRes.remotePdfPath &&
+                  (cloudRes.remotePdfPath.startsWith('http://') ||
+                    cloudRes.remotePdfPath.startsWith('https://'))),
+            );
+            try {
+              const inspRecord = await database
+                .get('inspections')
+                .find(inspectionId);
+              if (inspRecord) {
+                await database.write(async () => {
+                  await inspRecord.update((i: any) => {
+                    if (isUploaded) {
+                      i.isSynced = true;
+                    }
+                    if (cloudRes.remotePdfPath) {
+                      i.pdfPath = cloudRes.remotePdfPath;
+                    }
+                    if (
+                      cloudRes.remotePhotos &&
+                      Array.isArray(cloudRes.remotePhotos) &&
+                      cloudRes.remotePhotos.length > 0
+                    ) {
+                      i.photos = JSON.stringify(cloudRes.remotePhotos);
+                    }
+                    if (cloudRes.data?.form_data) {
+                      i.formData = JSON.stringify(cloudRes.data.form_data);
+                    }
+                  });
+                });
+              }
+            } catch (updateErr) {
+              console.warn('Error updating local DB sync status:', updateErr);
+            }
+          }
+          console.log(`[Background] Cloud sync selesai untuk ${inspectionId}`);
+        } catch (cloudErr) {
+          console.warn('[Background] Cloud upload gagal, akan di-retry saat sync berikutnya:', cloudErr);
+        }
+      }, 100);
     } catch (error: any) {
       console.error('Error in handleSaveInspection:', error);
       setSaving(false);
@@ -433,7 +443,8 @@ export const ReviewPdfScreen: React.FC = () => {
   const isBusy = saving || downloading || sharing;
 
   return (
-    <View style={styles.container}>
+    <AnimatedBackground>
+      <View style={styles.container}>
       {/* Header */}
       <Header
         title="Review Laporan"
@@ -624,13 +635,14 @@ export const ReviewPdfScreen: React.FC = () => {
         </View>
       </View>
     </View>
+  </AnimatedBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: 'transparent',
   },
   contentContainer: {
     flex: 1,

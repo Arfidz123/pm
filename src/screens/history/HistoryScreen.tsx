@@ -40,7 +40,7 @@ import {
   Shadow,
   FontFamily,
 } from '../../theme';
-import { StatusBadge } from '../../components/common';
+import { StatusBadge, AnimatedBackground } from '../../components/common';
 import database from '../../database';
 import { Inspection, Asset } from '../../database/models';
 import {
@@ -516,35 +516,37 @@ export const HistoryScreen: React.FC = () => {
   const sections = getSections();
 
   return (
-    <View style={styles.container}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={Colors.backgroundSecondary}
-      />
+    <AnimatedBackground>
+      <View style={styles.container}>
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor="transparent"
+          translucent
+        />
 
-      {/* ─── Header ─── */}
-      <Animated.View
-        style={[
-          styles.headerContainer,
-          {
-            opacity: headerAnim,
-            transform: [
-              {
-                translateY: headerAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [-30, 0],
-                }),
-              },
-            ],
-          },
-        ]}
-      >
-        <LinearGradient
-          colors={[Colors.backgroundSecondary, Colors.background]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.headerGradient}
+        {/* ─── Header ─── */}
+        <Animated.View
+          style={[
+            styles.headerContainer,
+            {
+              opacity: headerAnim,
+              transform: [
+                {
+                  translateY: headerAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-30, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
         >
+          <LinearGradient
+            colors={['rgba(11, 21, 42, 0.8)', 'rgba(7, 13, 29, 0.2)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.headerGradient}
+          >
           {/* Title row */}
           <View style={styles.headerTitleRow}>
             <View>
@@ -622,19 +624,20 @@ export const HistoryScreen: React.FC = () => {
         />
       </Animated.View>
     </View>
+  </AnimatedBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: 'transparent',
   },
 
   // ─── Header ───
   headerContainer: {},
   headerGradient: {
-    paddingTop: 56,
+    paddingTop: 106,
     paddingBottom: Spacing.lg,
     paddingHorizontal: Spacing.lg,
   },

@@ -28,7 +28,7 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors, Typography, Spacing, BorderRadius, Shadow } from '../../theme';
-import { Header, Card, Button, StatusBadge } from '../../components/common';
+import { Header, Card, Button, StatusBadge, AnimatedBackground } from '../../components/common';
 import { useInspectionStore } from '../../store/inspectionStore';
 import database from '../../database';
 import { Asset } from '../../database/models';
@@ -123,7 +123,8 @@ export const ReviewScreen: React.FC = () => {
   const infoPop = formData.infoPop || {};
 
   return (
-    <View style={styles.container}>
+    <AnimatedBackground>
+      <View style={styles.container}>
       <Header
         title="Review"
         subtitle="Periksa kembali hasil inspeksi sebelum submit"
@@ -147,7 +148,7 @@ export const ReviewScreen: React.FC = () => {
                 <View style={styles.assetInfo}>
                   <Text style={styles.assetCode}>{asset.assetCode}</Text>
                   <Text style={styles.assetName}>{asset.name}</Text>
-                  <Text style={styles.assetLocation}>📍 {asset.location}</Text>
+                  <Text style={styles.assetLocation}>{asset.location}</Text>
                 </View>
               </View>
             )}
@@ -363,7 +364,15 @@ export const ReviewScreen: React.FC = () => {
                   : undefined,
                 'Dimensi POP': me.popLuas,
                 'Pengukuran Grounding': me.grPengukuran,
-                'Grounding Status': me.grStatus
+                'System Grounding':
+                  me.systemGrounding || me.grSystem || ps.systemGrounding
+                    ? `${me.systemGrounding || me.grSystem || ps.systemGrounding}${
+                        me.systemGroundingKet || me.grSystemKet
+                          ? ` (${me.systemGroundingKet || me.grSystemKet})`
+                          : ''
+                      }`
+                    : undefined,
+                'Status Grounding': me.grStatus
                   ? `${me.grStatus}${
                       me.grStatusKet ? ` (${me.grStatusKet})` : ''
                     }`
@@ -371,8 +380,6 @@ export const ReviewScreen: React.FC = () => {
                 'Penangkal Petir': me.grPetir
                   ? `${me.grPetir}${me.grPetirKet ? ` (${me.grPetirKet})` : ''}`
                   : undefined,
-                'System Grounding':
-                  me.systemGrounding || ps.systemGrounding || 'Single',
                 'Catatan Grounding': me.grCatatan || ps.grCatatan,
                 'Catatan ME': me.popNote || me.note,
               }}
@@ -431,6 +438,24 @@ export const ReviewScreen: React.FC = () => {
             />
 
             <SectionDetail
+              title="TYPE POWERHOUSE"
+              data={{
+                'Running Hour (Last Month)': gs.runningHourLastMonth
+                  ? `${gs.runningHourLastMonth} Hour`
+                  : undefined,
+                'Running Hour (Current Month)': gs.runningHourCurrentMonth
+                  ? `${gs.runningHourCurrentMonth} Hour`
+                  : undefined,
+                'Durasi Pengecekan Lalu - Sekarang':
+                  gs.durasiPengecekanLalu_Sekarang
+                    ? `${gs.durasiPengecekanLalu_Sekarang} Hari`
+                    : undefined,
+                'Genset Model': gs.gensetModel,
+                'Genset Type': gs.gensetType,
+              }}
+            />
+
+            <SectionDetail
               title="FUEL SYSTEM & TANGKI"
               data={{
                 'Tangki Utama': gs.tangkiUtama
@@ -448,7 +473,31 @@ export const ReviewScreen: React.FC = () => {
                       gs.pipaSolarKet ? ` (${gs.pipaSolarKet})` : ''
                     }`
                   : '',
-                'Pompa Solar': gs.pompaSolar,
+                'Valve Gate Fuel Sys': gs.valveGateFuelSys
+                  ? `${gs.valveGateFuelSys}${
+                      gs.valveGateFuelSysKet ? ` (${gs.valveGateFuelSysKet})` : ''
+                    }`
+                  : '',
+                'Test Pompa (Auto)': gs.testPompaKondisiAuto
+                  ? `${gs.testPompaKondisiAuto}${
+                      gs.testPompaKondisiAutoKet ? ` (${gs.testPompaKondisiAutoKet})` : ''
+                    }`
+                  : '',
+                'Test Pompa (Manual)': gs.testPompaKondisiManual
+                  ? `${gs.testPompaKondisiManual}${
+                      gs.testPompaKondisiManualKet ? ` (${gs.testPompaKondisiManualKet})` : ''
+                    }`
+                  : '',
+                'Panel Pompa Solar': gs.panelPompaSolar
+                  ? `${gs.panelPompaSolar}${
+                      gs.panelPompaSolarKet ? ` (${gs.panelPompaSolarKet})` : ''
+                    }`
+                  : '',
+                'Pelampung Pompa Solar': gs.pelampungPompaSolar
+                  ? `${gs.pelampungPompaSolar}${
+                      gs.pelampungPompaSolarKet ? ` (${gs.pelampungPompaSolarKet})` : ''
+                    }`
+                  : '',
                 'Sisa BBM Bulan Lalu':
                   gs.sisaBbmPengecekanBulanLalu ||
                   gs.sisaBbmPengecekkanBulanLalu,
@@ -853,13 +902,14 @@ export const ReviewScreen: React.FC = () => {
         <View style={{ height: 40 }} />
       </ScrollView>
     </View>
+  </AnimatedBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: 'transparent',
   },
   scrollView: {
     flex: 1,

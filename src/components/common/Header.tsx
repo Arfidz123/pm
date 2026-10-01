@@ -13,6 +13,7 @@ import {
   StatusBar,
   Animated,
   Easing,
+  Image,
 } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';

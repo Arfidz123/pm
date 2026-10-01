@@ -41,7 +41,7 @@ import {
 } from 'lucide-react-native';
 
 import { Colors, Typography, Spacing, BorderRadius, Shadow } from '../../theme';
-import { showAlert, AcpdbIcon, DcpdbIcon } from '../../components/common';
+import { showAlert, AcpdbIcon, DcpdbIcon, AnimatedBackground } from '../../components/common';
 import database from '../../database';
 import { Asset } from '../../database/models';
 import { useAppStore } from '../../store/appStore';
@@ -88,88 +88,6 @@ const MENU_ITEMS = [
   { id: 'review', label: 'Review', icon: ClipboardCheck },
 ];
 
-// ─── Floating orb helper ─────────────────────────────────────────────────────
-const FloatingOrb: React.FC<{
-  size: number;
-  color: string;
-  style: any;
-}> = ({ size, color, style }) => {
-  const floatAnim = useRef(new Animated.Value(0)).current;
-  const driftAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const float = Animated.loop(
-      Animated.sequence([
-        Animated.timing(floatAnim, {
-          toValue: 1,
-          duration: 3000 + Math.random() * 2000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(floatAnim, {
-          toValue: 0,
-          duration: 3000 + Math.random() * 2000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    const drift = Animated.loop(
-      Animated.sequence([
-        Animated.timing(driftAnim, {
-          toValue: 1,
-          duration: 4000 + Math.random() * 2000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(driftAnim, {
-          toValue: 0,
-          duration: 4000 + Math.random() * 2000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    float.start();
-    drift.start();
-    return () => {
-      float.stop();
-      drift.stop();
-    };
-  }, []);
-
-  return (
-    <Animated.View
-      style={[
-        {
-          position: 'absolute',
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: color,
-          opacity: 0.15,
-        },
-        style,
-        {
-          transform: [
-            {
-              translateY: floatAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, -18],
-              }),
-            },
-            {
-              translateX: driftAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, 10],
-              }),
-            },
-          ],
-        },
-      ]}
-    />
-  );
-};
 
 export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -246,7 +164,10 @@ export const DashboardScreen: React.FC = () => {
       ]),
     );
     glow.start();
-    return () => glow.stop();
+
+    return () => {
+      glow.stop();
+    };
   }, []);
 
   useFocusEffect(
@@ -365,7 +286,7 @@ export const DashboardScreen: React.FC = () => {
 
   const handleResumeDraft = () => {
     if (!foundDraft) return;
-    loadExistingInspection(foundDraft.formData, {
+    loadExistingInspection(foundDraft, {
       id: foundDraft.assetId,
       assetCode: foundDraft.assetId,
       name: foundDraft.popName,
@@ -377,6 +298,9 @@ export const DashboardScreen: React.FC = () => {
       type: 'success',
       title: 'Draft Dipulihkan!',
       message: `Seluruh data pengerjaan untuk POP ${draftName} berhasil dipulihkan. Anda dapat melanjutkan pengisian form.`,
+      buttons: [
+        { text: 'OK' },
+      ],
     });
   };
 
@@ -471,22 +395,15 @@ export const DashboardScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Custom Header */}
-      <LinearGradient
-        colors={[Colors.backgroundSecondary, Colors.background]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.headerGradient}
-      >
-        {/* Floating decorative orbs */}
-        <FloatingOrb
-          size={120}
-          color="#3B82F6"
-          style={{ top: -30, right: -20 }}
-        />
-        <FloatingOrb size={80} color="#60A5FA" style={{ top: 20, right: 80 }} />
-        <FloatingOrb size={50} color="#1E40AF" style={{ top: 60, right: 10 }} />
+    <AnimatedBackground>
+      <View style={styles.container}>
+        {/* Custom Header */}
+        <LinearGradient
+          colors={['rgba(11, 21, 42, 0.75)', 'rgba(7, 13, 29, 0.1)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.headerGradient}
+        >
 
         <Animated.View
           style={[
@@ -510,33 +427,12 @@ export const DashboardScreen: React.FC = () => {
               style={styles.headerLogo}
               resizeMode="contain"
             />
-            <Text style={styles.headerOverline}>BERANDA</Text>
+            <Text style={styles.headerOverline}>PREVENTIVE MAINTENANCE</Text>
             <Text style={styles.headerTitle}>{getGreeting()}</Text>
-            <Text style={styles.inspectorNameText}>
-              {inspectorName || 'Teknisi'}
-            </Text>
+            {inspectorName ? (
+              <Text style={styles.inspectorNameText}>{inspectorName}</Text>
+            ) : null}
           </View>
-          {activePopId && (
-            <Animated.View
-              style={[
-                styles.activeIndicatorDot,
-                {
-                  opacity: glowAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.5, 1],
-                  }),
-                  transform: [
-                    {
-                      scale: glowAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0.9, 1.15],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            />
-          )}
         </Animated.View>
       </LinearGradient>
 
@@ -748,6 +644,20 @@ export const DashboardScreen: React.FC = () => {
                         !isDisabled && styles.gridItemActive,
                       ]}
                     >
+                      {/* Subtle futuristic index watermark */}
+                      <Text
+                        style={[
+                          styles.gridIndexBadge,
+                          {
+                            color: isDisabled
+                              ? 'rgba(255,255,255,0.12)'
+                              : 'rgba(255,255,255,0.3)',
+                          },
+                        ]}
+                      >
+                        {String(index + 1).padStart(2, '0')}
+                      </Text>
+
                       <View
                         style={[
                           styles.gridIconWrapper,
@@ -780,16 +690,17 @@ export const DashboardScreen: React.FC = () => {
         <View style={{ height: 40 }} />
       </ScrollView>
     </View>
+  </AnimatedBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: 'transparent',
   },
   headerGradient: {
-    paddingTop: 56,
+    paddingTop: 106,
     paddingBottom: Spacing.lg,
     paddingHorizontal: Spacing.lg,
     overflow: 'hidden',
@@ -797,12 +708,15 @@ const styles = StyleSheet.create({
   headerTitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.lg,
   },
   headerLogo: {
+    position: 'absolute',
+    top: -50,
+    left: 0,
     width: 140,
     height: 42,
-    marginBottom: Spacing.sm,
     resizeMode: 'contain',
   },
   headerOverline: {
@@ -1144,5 +1058,13 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 11,
     fontWeight: '600',
+  },
+  gridIndexBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 8,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
 });

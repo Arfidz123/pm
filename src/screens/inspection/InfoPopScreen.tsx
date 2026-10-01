@@ -36,6 +36,7 @@ export const InfoPopScreen: React.FC = () => {
     removePhoto,
     formData,
     updateFormData,
+    saveDraftNow,
   } = useInspectionStore();
 
   const [asset, setAsset] = useState<Asset | null>(null);
@@ -119,6 +120,13 @@ export const InfoPopScreen: React.FC = () => {
     handleUpdateField('tipePop', newSelected);
   };
 
+  const handleSaveAndBack = async () => {
+    try {
+      await saveDraftNow();
+    } catch (e) {}
+    navigation.goBack();
+  };
+
   return (
     <View style={styles.container}>
       <Header
@@ -128,7 +136,7 @@ export const InfoPopScreen: React.FC = () => {
             ? `POP: ${cleanPopName(activePopName)}`
             : 'Detail Informasi POP'
         }
-        onBack={() => navigation.goBack()}
+        onBack={handleSaveAndBack}
       />
 
       <View style={styles.contentContainer}>
@@ -175,7 +183,7 @@ export const InfoPopScreen: React.FC = () => {
                   onChangeText={val => {
                     setNamaManual(val);
                     handleUpdateField('namaPop', val);
-                    setActivePop(activePopId, val, alamatManual);
+                    useInspectionStore.setState({ activePopName: val });
                   }}
                   placeholder="Masukkan nama POP"
                   placeholderTextColor={Colors.textMuted}
@@ -288,7 +296,7 @@ export const InfoPopScreen: React.FC = () => {
           {/* Action Button */}
           <TouchableOpacity
             style={styles.saveButton}
-            onPress={() => navigation.goBack()}
+            onPress={handleSaveAndBack}
             activeOpacity={0.8}
           >
             <Text style={styles.saveButtonText}>Simpan & Kembali</Text>
