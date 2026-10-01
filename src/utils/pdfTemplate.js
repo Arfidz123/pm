@@ -364,10 +364,10 @@ var generatePdfHtml = function (
 
         /* --- Step Pengujian Helper --- */
         var stepPengujianHtml =
-                '<table style="width: 98%; border-collapse: collapse; border: 3px solid #000; font-size: 16px; line-height: 1.5; background-color: #fff; height: 100%;">\n' +
+                '<table style="width: 98%; border-collapse: collapse; border: 2px solid #000; font-size: 16px; line-height: 1.5; background-color: #fff; margin: 0; height: 100%;">\n' +
                 '  \n' +
                 '  <tr style="background-color: red; color: white; text-align: center; font-weight: bold; height: 1px;">\n' +
-                '    <td colspan="2" style="padding: 6px; border-bottom: 3px solid #000; font-size: 16px; letter-spacing: 0.5px;">STEP PENGUJIAN</td>\n' +
+                '    <td colspan="2" style="padding: 2px; border-bottom: 2px solid #000; font-size: 16px; letter-spacing: 0.5px;">STEP PENGUJIAN</td>\n' +
                 '  </tr>\n' +
                 '  \n' +
                 '  <tr>\n' +
@@ -425,12 +425,12 @@ var generatePdfHtml = function (
                 '  </tr>\n' +
                 '  \n' +
                 '  <tr style="background-color: red; color: white; text-align: center; font-weight: bold; height: 1px;">\n' +
-                '    <td width="50%" style="padding: 5px; border-right: 3px solid #000; border-top: 3px solid #000; font-size: 16px;">PELAKSANA</td>\n' +
-                '    <td width="50%" style="padding: 5px; border-top: 3px solid #000; font-size: 16px;">PENANGGUNG JAWAB</td>\n' +
+                '    <td width="50%" style="padding: 5px; border-right: 2px solid #000; border-top: 2px solid #000; font-size: 16px;">PELAKSANA</td>\n' +
+                '    <td width="50%" style="padding: 5px; border-top: 2px solid #000; font-size: 16px;">PENANGGUNG JAWAB</td>\n' +
                 '  </tr>\n' +
                 '  \n' +
                 '  <tr style="height: 1px;">\n' +
-                '    <td height="200px" style="border-right: 3px solid #000; vertical-align: bottom; text-align: center; padding-bottom: 10px;">&nbsp;</td>\n' +
+                '    <td height="200px" style="border-right: 2px solid #000; vertical-align: bottom; text-align: center; padding-bottom: 10px;">&nbsp;</td>\n' +
                 '    <td height="200px" style="vertical-align: bottom; text-align: center; padding-bottom: 10px;">&nbsp;</td>\n' +
                 '  </tr>\n' +
                 '</table>\n';
@@ -1109,487 +1109,514 @@ var generatePdfHtml = function (
                 '              <!-- FOUR COLUMN WIDE LAYOUT (SCALED TO FIT PORTRAIT) -->\n' +
                 '              <table style="width: 46%; border-collapse: collapse; border: none; margin: 0; font-size: 16px;">\n' +
                 '                <tr>\n' +
-                '                  <!-- COLUMN 1: PLN & GENSET -->\n' +
-                '                  <td width="20%" style="vertical-align: top; padding-right: 5px; border: none;">\n' +
-                '                    <!-- CATUAN UTAMA & EKSTERNAL (TOP ROW) -->\n' +
-                '                    <table style="width: 98%; border-collapse: collapse; border: none; margin-bottom: 5px;">\n' +
+                '                  <!-- LEFT 3 COLUMNS: GRID ALIGNED INTO 3 HORIZONTAL BANDS -->\n' +
+                '                  <td colspan="3" width="65%" style="vertical-align: top; padding: 0; padding-right: 5px; border: none;">\n' +
+                '                    <table style="width: 100%; border-collapse: collapse; border: none; margin: 0; padding: 0;">\n' +
+                '                      <!-- BAND 1: TOP (Catuan Utama/Eksternal, Spacer, Rectifier #1) -->\n' +
                 '                      <tr>\n' +
-                '                        <td width="48%" style="padding: 0; border: none; vertical-align: top;">\n' +
-                '                          <table style="width: 55%; border-collapse: collapse; border: 3px solid #000;">\n' +
-                '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                              <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">Catuan Utama</td>\n' +
-                '                            </tr>\n' +
+                '                        <td width="31%" style="vertical-align: top; padding: 0 5px 0 0; border: none;">\n' +
+                '                          <table style="width: 100%; height: 100%; border-collapse: collapse; border: none; margin: 0; padding: 0;">\n' +
                 '                            <tr>\n' +
-                '                              <td width="30%" style="font-weight: bold; padding: 2px; border: 1.5px solid #000;">PLN</td>\n' +
-                '                              <td width="50%" style="padding: 2px; border: 1.5px solid #000;">: ' +
+                '                              <td width="48%" style="padding: 0; border: none; vertical-align: top;">\n' +
+                '                                <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000; margin: 0;">\n' +
+                '                                  <tr style="background-color: red; color: white; font-weight: bold; text-align: center; height: 1px;">\n' +
+                '                                    <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">Catuan Utama</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr>\n' +
+                '                                    <td width="30%" style="font-weight: bold; padding: 2px; border: 1.5px solid #000;">PLN</td>\n' +
+                '                                    <td width="70%" style="padding: 2px; border: 1.5px solid #000;">: ' +
                 (power.tipePln || '-') +
                 '</td>\n' +
-                '                            </tr>\n' +
-                '                          </table>\n' +
-                '                        </td>\n' +
-                '                        <td width="4%" style="border: none;"></td>\n' +
-                '                        <td width="100%" style="padding: 0; border: none; vertical-align: top;">\n' +
-                '                          <table style="width: 60%; border-collapse: collapse; border: 3px solid #000;">\n' +
-                '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                              <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">Catuan Eksternal</td>\n' +
-                '                            </tr>\n' +
-                '                            <tr>\n' +
-                '                              <td width="30%" style="font-weight: bold; padding: 2px; border: 1.5px solid #000;">Genset</td>\n' +
-                '                              <td width="50%" style="padding: 2px; border: 1.5px solid #000;">: ' +
+                '                                  </tr>\n' +
+                '                                </table>\n' +
+                '                              </td>\n' +
+                '                              <td width="4%" style="border: none;"></td>\n' +
+                '                              <td width="48%" style="padding: 0; border: none; vertical-align: top;">\n' +
+                '                                <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000; margin: 0;">\n' +
+                '                                  <tr style="background-color: red; color: white; font-weight: bold; text-align: center; height: 1px;">\n' +
+                '                                    <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">Catuan Eksternal</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr>\n' +
+                '                                    <td width="30%" style="font-weight: bold; padding: 2px; border: 1.5px solid #000;">Genset</td>\n' +
+                '                                    <td width="70%" style="padding: 2px; border: 1.5px solid #000;">: ' +
                 ((formData.genset && formData.genset.gensetAda) || power.gensetAda || '-') +
                 '</td>\n' +
+                '                                  </tr>\n' +
+                '                                </table>\n' +
+                '                              </td>\n' +
+                '                            </tr>\n' +
+                '                          </table>\n' +
+                '                        </td>\n' +
+                '                        <td width="46%" style="vertical-align: top; padding: 0 5px 0 0; border: none;">\n' +
+                '                          <!-- Kosong di atas Visual Check MDP -->\n' +
+                '                        </td>\n' +
+                '                        <td width="23%" style="vertical-align: top; padding: 0 0 0 0; border: none;">\n' +
+                '                          <!-- RECTIFIER #1 (MENYATU DENGAN RECTIFIER #2 DI BAWAHNYA) -->\n' +
+                '                          <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000; border-bottom: none; margin: 0;">\n' +
+                '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center; height: 1px;">\n' +
+                '                              <td width="40%" style="border: 1.5px solid #000; padding: 2px;">Rectifier #1</td>\n' +
+                '                              <td width="15%" style="border: 1.5px solid #000; padding: 2px;">Status</td>\n' +
+                '                              <td width="45%" style="border: 1.5px solid #000; padding: 2px;">Keterangan</td>\n' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Kebersihan Rack</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
+                (r1.kebersihanRack || power.rect1KebersihanRack || '') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
+                (r1.kebersihanRackKet || power.rect1KebersihanRackKet || '') +
+                '</td>\n' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="border: 1.5px solid #000; border-bottom: none; padding: 2px; text-align: center;">Cek Baut Kabinet</td>\n' +
+                '                              <td style="border: 1.5px solid #000; border-bottom: none; padding: 2px; text-align: center;">' +
+                (r1.cekBautKabinet || power.rect1CekBautKabinet || '') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; border-bottom: none; padding: 2px;">' +
+                (r1.cekBautKabinetKet || power.rect1CekBautKabinetKet || '') +
+                '</td>\n' +
                 '                            </tr>\n' +
                 '                          </table>\n' +
                 '                        </td>\n' +
                 '                      </tr>\n' +
-                '                    </table>\n' +
-                '                    <table style="width: 98%; border-collapse: collapse; border: 3px solid #000; border: none;">\n' +
+                '                      <!-- BAND 2: MIDDLE (SEJAJAR ATAS: Merk Genset, Visual Check MDP, Rectifier #2 | SEJAJAR BAWAH: Phasa, COS Genset, Cek Baut Kabinet) -->\n' +
                 '                      <tr>\n' +
-                '                        <td width="25%" style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">ID Pelanggan</td>\n' +
-                '                        <td width="25%" style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                        <td style="vertical-align: top; padding: 0 5px 5px 0; border: none;">\n' +
+                '                          <!-- CATUAN TABLE: ID Pelanggan / Merk Genset ... Bulan Lalu / Phasa -->\n' +
+                '                          <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000;">\n' +
+                '                            <tr>\n' +
+                '                              <td width="25%" style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">ID Pelanggan</td>\n' +
+                '                              <td width="25%" style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.idPelanggan || kwh.idCustomer || '') +
                 '</td>\n' +
-                '                        <td width="20%" style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Merk Genset</td>\n' +
-                '                        <td width="25%" style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                              <td width="25%" style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Merk Genset</td>\n' +
+                '                              <td width="25%" style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.gensetAda === 'Ada' ? power.merkGenset || '' : '') +
                 '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Daya Listrik (kVA)</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Daya Listrik (kVA)</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.dayaListrik || kwh.daya || '') +
                 '</td>\n' +
-                '                        <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Serial Number</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                              <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Serial Number</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.gensetAda === 'Ada' ? power.snGenset || '' : '') +
                 '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Phasa</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Phasa</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.phasaCatuan || '') +
                 '</td>\n' +
-                '                        <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Jenis Genset</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                              <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Jenis Genset</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.gensetAda === 'Ada'
                         ? power.engineMerk || power.engineMark || power.jenisGenset || ''
                         : '') +
                 '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Pengukuran KWH</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Pengukuran KWH</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.pengukuranKwh || '') +
                 '</td>\n' +
-                '                        <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Tipe Genset</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                              <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Tipe Genset</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.gensetAda === 'Ada' ? power.tipeGenset || '' : '') +
                 '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Bulan Ini</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Bulan Ini</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.bulanIni || '') +
                 '</td>\n' +
-                '                        <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Kapasitas</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                              <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Kapasitas</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.gensetAda === 'Ada' ? power.kapasitasGenset || '' : '') +
                 '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Bulan Lalu</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Bulan Lalu</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.bulanLalu || '') +
                 '</td>\n' +
-                '                        <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Phasa</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                              <td style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Phasa</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.gensetAda === 'Ada' ? power.phasaGenset || '' : '') +
-                '</td>\n' +
-                '                      </tr>\n' +
-                '                    </table>\n' +
-                '                    <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 5px; margin-bottom: 5px;">\n' +
-                '                      <tr>\n' +
-                '                        <td width="51%" style="vertical-align: top; padding: 0; border: none;">\n' +
-                '                          <table style="width: 100%; border-collapse: collapse; border: 3px solid #000;">\n' +
-                '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                              <td colspan="3" style="padding: 2px; border: 1.5px solid #000;">TEGANGAN CATUAN (AC)</td>\n' +
-                '                            </tr>\n' +
-                '                            <tr style="text-align: center; font-weight: bold;">\n' +
-                '                              <td width="25%" style="padding: 2px; border: 1.5px solid #000;">Phasa</td>\n' +
-                '                              <td width="25%" style="padding: 2px; border: 1.5px solid #000;">Voltage</td>\n' +
-                '                              <td width="50%" style="padding: 2px; border: 1.5px solid #000;">Tolak Ukur</td>\n' +
-                '                            </tr>\n' +
-                '                            <tr style="text-align: center;">\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">R-N</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganR_N || power.vRn || '') +
-                '</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganR_N_TU || '220 ± 10%') +
-                '</td>\n' +
-                '                            </tr>\n' +
-                '                            <tr style="text-align: center;">\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">S-N</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganS_N || power.vSn || '') +
-                '</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganS_N_TU || '220 ± 10%') +
-                '</td>\n' +
-                '                            </tr>\n' +
-                '                            <tr style="text-align: center;">\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">T-N</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganT_N || power.vTn || '') +
-                '</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganT_N_TU || '220 ± 10%') +
-                '</td>\n' +
-                '                            </tr>\n' +
-                '                            <tr style="text-align: center;">\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">R-T</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganR_T || power.vRt || '') +
-                '</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganR_T_TU || '400 ± 10%') +
-                '</td>\n' +
-                '                            </tr>\n' +
-                '                            <tr style="text-align: center;">\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">S-T</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganS_T || power.vSt || '') +
-                '</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganS_T_TU || '400 ± 10%') +
-                '</td>\n' +
-                '                            </tr>\n' +
-                '                            <tr style="text-align: center;">\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">R-S</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganR_S || power.vRs || '') +
-                '</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganR_S_TU || '400 ± 10%') +
-                '</td>\n' +
-                '                            </tr>\n' +
-                '                            <tr style="text-align: center;">\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">G-N</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganG_N || power.vGn || '') +
-                '</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.teganganG_N_TU || '') +
                 '</td>\n' +
                 '                            </tr>\n' +
                 '                          </table>\n' +
                 '                        </td>\n' +
-                '                        <td width="6%" style="border: none;"></td>\n' +
-                '                        <td width="49%" style="vertical-align: top; padding: 0; border: none;">\n' +
-                '                          <table style="width: 96%; border-collapse: collapse; border: 3px solid #000;">\n' +
+                '                        <td style="vertical-align: top; padding: 0 5px 5px 0; border: none;">\n' +
+                '                          <!-- VISUAL CHECK MDP: Header ... COS Genset -->\n' +
+                '                          <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                              <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">TOTAL ARUS TERPAKAI (AC)</td>\n' +
+                '                              <td colspan="2" width="36%" style="border: 1.5px solid #000; padding: 2px;">Visual Check MDP</td>\n' +
+                '                              <td width="30%" style="border: 1.5px solid #000; padding: 2px;">Keterangan</td>\n' +
+                '                              <td width="34%" style="border: 1.5px solid #000; padding: 2px;">Catatan</td>\n' +
                 '                            </tr>\n' +
-                '                            <tr style="text-align: center;">\n' +
-                '                              <td width="50%" style="padding: 2px; border: 1.5px solid #000;">Phasa (A)</td>\n' +
-                '                              <td width="50%" style="padding: 2px; border: 1.5px solid #000;">' +
+                '                            <tr>\n' +
+                '                              <td width="20%" style="border: 1.5px solid #000; padding: 2px;"><b>Cek Kabel</b></td>\n' +
+                '                              <td width="10%" style="border: 1.5px solid #000; padding: 2px;">' +
+                (power.cekKabel ? ': ' + power.cekKabel : ':') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
+                (power.cekKabelKet || '') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui kondisi kabel terbakar, terkelupas</td>\n' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;"><b>Cek Baut Terminal</b></td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
+                (power.cekBautTerminal ? ': ' + power.cekBautTerminal : ':') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
+                (power.cekBautTerminalKet || '') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui tingkat kekencangan</td>\n' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;"><b>Cek Baut MCB/MCCB</b></td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
+                (power.cekBautMCB ? ': ' + power.cekBautMCB : ':') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
+                (power.cekBautMCBKet || '') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui tingkat kekencangan</td>\n' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;"><b>Indikator Lamp R,S,T</b></td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
+                (power.indikatorLamp ? ': ' + power.indikatorLamp : ':') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
+                (power.indikatorLampKet || '') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui kondisi mati, hilang</td>\n' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;"><b>COS Genset</b></td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
+                (power.cosGenset ? ': ' + power.cosGenset : ':') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
+                (power.cosGensetKet || '') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui kondisi kabel terbakar, terkelupas</td>\n' +
+                '                            </tr>\n' +
+                '                          </table>\n' +
+                '                        </td>\n' +
+                '                        <td width="23%" style="vertical-align: top; padding: 0 0 5px 0; border: none;">\n' +
+                '                          <!-- RECTIFIER #2 & #3 (SEJAJAR ATAS DENGAN VISUAL CHECK MDP & BAWAH DENGAN COS GENSET) -->\n' +
+                '                          <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none; margin: 0;">\n' +
+                '                            <!-- RECTIFIER #2 -->\n' +
+                '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
+                '                              <td width="40%" style="border: 1.5px solid #000; padding: 2px;">Rectifier #2</td>\n' +
+                '                              <td width="15%" style="border: 1.5px solid #000; padding: 2px;">Status</td>\n' +
+                '                              <td width="45%" style="border: 1.5px solid #000; padding: 2px;">Keterangan</td>\n' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Kebersihan Rack</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
+                (r2.kebersihanRack || power.rect2KebersihanRack || '') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
+                (r2.kebersihanRackKet || power.rect2KebersihanRackKet || '') +
+                '</td>\n' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Cek Baut Kabinet</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
+                (r2.cekBautKabinet || power.rect2CekBautKabinet || '') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
+                (r2.cekBautKabinetKet || power.rect2CekBautKabinetKet || '') +
+                '</td>\n' +
+                '                            </tr>\n' +
+                '                            <!-- RECTIFIER #3 -->\n' +
+                '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
+                '                              <td width="40%" style="border: 1.5px solid #000; padding: 2px;">Rectifier #3</td>\n' +
+                '                              <td width="15%" style="border: 1.5px solid #000; padding: 2px;">Status</td>\n' +
+                '                              <td width="45%" style="border: 1.5px solid #000; padding: 2px;">Keterangan</td>\n' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Kebersihan Rack</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
+                (r3.kebersihanRack || power.rect3KebersihanRack || '') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
+                (r3.kebersihanRackKet || power.rect3KebersihanRackKet || '') +
+                '</td>\n' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Cek Baut Kabinet</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
+                (r3.cekBautKabinet || power.rect3CekBautKabinet || '') +
+                '</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
+                (r3.cekBautKabinetKet || power.rect3CekBautKabinetKet || '') +
+                '</td>\n' +
+                '                            </tr>\n' +
+                '                          </table>\n' +
+                '                        </td>\n' +
+                '                      </tr>\n' +
+                '                      <!-- BAND 3: BOTTOM (Tegangan & Arus AC, Pengecekan Arrester, Grounding System - SEJAJAR ATAS) -->\n' +
+                '                      <tr>\n' +
+                '                        <td style="vertical-align: top; padding: 0 5px 0 0; border: none;">\n' +
+                '                          <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 5px; margin-bottom: 5px;">\n' +
+                '                            <tr>\n' +
+                '                              <td width="51%" style="vertical-align: top; padding: 0; border: none;">\n' +
+                '                                <table style="width: 100%; border-collapse: collapse; border: 2px solid #000;">\n' +
+                '                                  <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
+                '                                    <td colspan="3" style="padding: 2px; border: 1.5px solid #000;">TEGANGAN CATUAN (AC)</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center; font-weight: bold;">\n' +
+                '                                    <td width="25%" style="padding: 2px; border: 1.5px solid #000;">Phasa</td>\n' +
+                '                                    <td width="25%" style="padding: 2px; border: 1.5px solid #000;">Voltage</td>\n' +
+                '                                    <td width="50%" style="padding: 2px; border: 1.5px solid #000;">Tolak Ukur</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">R-N</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganR_N || power.vRn || '') +
+                '</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganR_N_TU || '220 ± 10%') +
+                '</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">S-N</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganS_N || power.vSn || '') +
+                '</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganS_N_TU || '220 ± 10%') +
+                '</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">T-N</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganT_N || power.vTn || '') +
+                '</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganT_N_TU || '220 ± 10%') +
+                '</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">R-T</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganR_T || power.vRt || '') +
+                '</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganR_T_TU || '400 ± 10%') +
+                '</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">S-T</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganS_T || power.vSt || '') +
+                '</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganS_T_TU || '400 ± 10%') +
+                '</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">R-S</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganR_S || power.vRs || '') +
+                '</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganR_S_TU || '400 ± 10%') +
+                '</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">G-N</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganG_N || power.vGn || '') +
+                '</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.teganganG_N_TU || '') +
+                '</td>\n' +
+                '                                  </tr>\n' +
+                '                                </table>\n' +
+                '                              </td>\n' +
+                '                              <td width="6%" style="border: none;"></td>\n' +
+                '                              <td width="49%" style="vertical-align: top; padding: 0; border: none;">\n' +
+                '                                <table style="width: 100%; border-collapse: collapse; border: 2px solid #000;">\n' +
+                '                                  <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
+                '                                    <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">TOTAL ARUS TERPAKAI (AC)</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td width="50%" style="padding: 2px; border: 1.5px solid #000;">Phasa (A)</td>\n' +
+                '                                    <td width="50%" style="padding: 2px; border: 1.5px solid #000;">' +
                 (power.phasaArus || power.phasaCatuan || power.phasa || '') +
                 '</td>\n' +
-                '                            </tr>\n' +
-                '                            <tr style="text-align: center;">\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">Frekuensi (Hz)</td>\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">Frekuensi (Hz)</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
                 (power.frekuensi || '') +
                 '</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">R</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.arusPhasaR || power.arusR || '') +
+                '</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">S</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.arusPhasaS || power.arusS || '') +
+                '</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">T</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.arusPhasaT || power.arusT || '') +
+                '</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
+                '                                    <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">STABILIZER</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">Kapasitas (kVA)</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.stabilizerKapasitas || power.kapasitasStabilizer || '') +
+                '</td>\n' +
+                '                                  </tr>\n' +
+                '                                  <tr style="text-align: center;">\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">Jumlah</td>\n' +
+                '                                    <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.stabilizerJumlah || power.jumlahStabilizer || '') +
+                '</td>\n' +
+                '                                  </tr>\n' +
+                '                                </table>\n' +
+                '                              </td>\n' +
+                '                            </tr>\n' +
+                '                          </table>\n' +
+                '                        </td>\n' +
+                '                        <td style="vertical-align: top; padding: 0 5px 0 0; border: none;">\n' +
+                '                          <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-top: 5px;">\n' +
+                '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
+                '                              <td colspan="5" style="padding: 2px; border: 1.5px solid #000;">PENGECEKAN ARRESTER</td>\n' +
+                '                            </tr>\n' +
+                '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
+                '                              <td width="5%" style="padding: 2px; border: 1.5px solid #000;">PHASA</td>\n' +
+                '                              <td width="25%" style="padding: 2px; border: 1.5px solid #000;">ARRESTER KWH BOX</td>\n' +
+                '                              <td width="25%" style="padding: 2px; border: 1.5px solid #000;">ARRESTER ACPDB</td>\n' +
+                '                              <td width="25%" style="padding: 2px; border: 1.5px solid #000;">ARRESTER RECTIFIER</td>\n' +
+                '                              <td width="20%" style="padding: 2px; border: 1.5px solid #000;">KETERANGAN</td>\n' +
                 '                            </tr>\n' +
                 '                            <tr style="text-align: center;">\n' +
                 '                              <td style="padding: 2px; border: 1.5px solid #000;">R</td>\n' +
                 '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.arusPhasaR || power.arusR || '') +
+                (power.kwhBoxR || power.arresterKwhR || 'OK') +
+                '</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.acpdbR || power.arresterAcpdbR || 'OK') +
+                '</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.rectifierR || power.arresterRectifierR || 'OK') +
+                '</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.arresterKetR || '') +
                 '</td>\n' +
                 '                            </tr>\n' +
                 '                            <tr style="text-align: center;">\n' +
                 '                              <td style="padding: 2px; border: 1.5px solid #000;">S</td>\n' +
                 '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.arusPhasaS || power.arusS || '') +
+                (power.kwhBoxS || power.arresterKwhS || 'OK') +
+                '</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.acpdbS || power.arresterAcpdbS || 'OK') +
+                '</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.rectifierS || power.arresterRectifierS || 'OK') +
+                '</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.arresterKetS || '') +
                 '</td>\n' +
                 '                            </tr>\n' +
                 '                            <tr style="text-align: center;">\n' +
                 '                              <td style="padding: 2px; border: 1.5px solid #000;">T</td>\n' +
                 '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.arusPhasaT || power.arusT || '') +
+                (power.kwhBoxT || power.arresterKwhT || 'OK') +
+                '</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.acpdbT || power.arresterAcpdbT || 'OK') +
+                '</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.rectifierT || power.arresterRectifierT || 'OK') +
+                '</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.arresterKetT || '') +
                 '</td>\n' +
                 '                            </tr>\n' +
-                '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                              <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">STABILIZER</td>\n' +
-                '                            </tr>\n' +
                 '                            <tr style="text-align: center;">\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">Kapasitas (kVA)</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">N</td>\n' +
                 '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.stabilizerKapasitas || power.kapasitasStabilizer || '') +
+                (power.kwhBoxN || power.arresterKwhN || 'OK') +
                 '</td>\n' +
-                '                            </tr>\n' +
-                '                            <tr style="text-align: center;">\n' +
-                '                              <td style="padding: 2px; border: 1.5px solid #000;">Jumlah</td>\n' +
                 '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.stabilizerJumlah || power.jumlahStabilizer || '') +
+                (power.acpdbN || power.arresterAcpdbN || 'OK') +
+                '</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.rectifierN || power.arresterRectifierN || 'OK') +
+                '</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
+                (power.arresterKetN || '') +
                 '</td>\n' +
                 '                            </tr>\n' +
                 '                          </table>\n' +
                 '                        </td>\n' +
-                '                      </tr>\n' +
-                '                    </table>\n' +
-                '                  </td>\n' +
-                '                  <!-- COLUMN 2: VISUAL CHECK MDP -->\n' +
-                '                  <td width="30%" style="vertical-align: top; padding-right: 5px; border: none;">\n' +
-                '                    <!-- INVISIBLE SPACER TO ALIGN WITH SECOND TABLE IN COL 1 -->\n' +
-                '                    <div style="visibility: hidden;">\n' +
-                '                      <table style="width: 100%; border-collapse: collapse; border: none; margin-bottom: 5px;">\n' +
-                '                        <tr><td style="padding: 0; vertical-align: top;">\n' +
-                '                          <table style="width: 100%; border-collapse: collapse; border: 1.5px solid #000;">\n' +
-                '                            <tr><td style="padding: 2px; border: 1.5px solid #000;">&nbsp;</td></tr>\n' +
-                '                            <tr><td style="padding: 2px; border: 1.5px solid #000;">&nbsp;</td></tr>\n' +
-                '                          </table>\n' +
-                '                        </td></tr>\n' +
-                '                      </table>\n' +
-                '                    </div>\n' +
-                '                    <table style="width: 98%; border-collapse: collapse; border: 3px solid #000;">\n' +
-                '                      <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                        <td colspan="2" width="36%" style="border: 1.5px solid #000; padding: 2px;">Visual Check MDP</td>\n' +
-                '                        <td width="30%" style="border: 1.5px solid #000; padding: 2px;">Keterangan</td>\n' +
-                '                        <td width="36%" style="border: 1.5px solid #000; padding: 2px;">Catatan</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td width="17%" style="border: 1.5px solid #000; padding: 2px;"><b>Cek Kabel</b></td>\n' +
-                '                        <td width="10%" style="border: 1.5px solid #000; padding: 2px;">' +
-                (power.cekKabel ? ': ' + power.cekKabel : ':') +
-                '</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
-                (power.cekKabelKet || '') +
-                '</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui kondisi kabel terbakar, terkelupas</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px;"><b>Cek Baut Terminal</b></td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px;">' +
-                (power.cekBautTerminal ? ': ' + power.cekBautTerminal : ':') +
-                '</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
-                (power.cekBautTerminalKet || '') +
-                '</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui tingkat kekencangan</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px;"><b>Cek Baut MCB/MCCB</b></td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px;">' +
-                (power.cekBautMCB ? ': ' + power.cekBautMCB : ':') +
-                '</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
-                (power.cekBautMCBKet || '') +
-                '</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui tingkat kekencangan</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px;"><b>Indikator Lamp R,S,T</b></td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px;">' +
-                (power.indikatorLamp ? ': ' + power.indikatorLamp : ':') +
-                '</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
-                (power.indikatorLampKet || '') +
-                '</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui kondisi mati, hilang</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px;"><b>COS Genset</b></td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px;">' +
-                (power.cosGenset ? ': ' + power.cosGenset : ':') +
-                '</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
-                (power.cosGensetKet || '') +
-                '</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui kondisi kabel terbakar, terkelupas</td>\n' +
-                '                      </tr>\n' +
-                '                    </table>\n' +
-                '                    <table style="width: 98%; border-collapse: collapse; border: 3px solid #000; margin-top: 5px;">\n' +
-                '                      <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                        <td colspan="5" style="padding: 2px; border: 1.5px solid #000;">PENGECEKAN ARRESTER</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                        <td width="5%" style="padding: 2px; border: 1.5px solid #000;">PHASA</td>\n' +
-                '                        <td width="25%" style="padding: 2px; border: 1.5px solid #000;">ARRESTER KWH BOX</td>\n' +
-                '                        <td width="25%" style="padding: 2px; border: 1.5px solid #000;">ARRESTER ACPDB</td>\n' +
-                '                        <td width="25%" style="padding: 2px; border: 1.5px solid #000;">ARRESTER RECTIFIER</td>\n' +
-                '                        <td width="20%" style="padding: 2px; border: 1.5px solid #000;">KETERANGAN</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr style="text-align: center;">\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">R</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.kwhBoxR || power.arresterKwhR || 'OK') +
-                '</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.acpdbR || power.arresterAcpdbR || 'OK') +
-                '</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.rectifierR || power.arresterRectifierR || 'OK') +
-                '</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.arresterKetR || '') +
-                '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr style="text-align: center;">\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">S</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.kwhBoxS || power.arresterKwhS || 'OK') +
-                '</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.acpdbS || power.arresterAcpdbS || 'OK') +
-                '</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.rectifierS || power.arresterRectifierS || 'OK') +
-                '</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.arresterKetS || '') +
-                '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr style="text-align: center;">\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">T</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.kwhBoxT || power.arresterKwhT || 'OK') +
-                '</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.acpdbT || power.arresterAcpdbT || 'OK') +
-                '</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.rectifierT || power.arresterRectifierT || 'OK') +
-                '</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.arresterKetT || '') +
-                '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr style="text-align: center;">\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">N</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.kwhBoxN || power.arresterKwhN || 'OK') +
-                '</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.acpdbN || power.arresterAcpdbN || 'OK') +
-                '</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.rectifierN || power.arresterRectifierN || 'OK') +
-                '</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
-                (power.arresterKetN || '') +
-                '</td>\n' +
-                '                      </tr>\n' +
-                '                    </table>\n' +
-                '                  </td>\n' +
-                '                  <!-- COLUMN 3: RECTIFIER -->\n' +
-                '                  <td width="15%" style="vertical-align: top; padding-right: 5px; border: none;">\n' +
-                '                    <table style="width: 97%; border-collapse: collapse; border: 3px solid #000;">\n' +
-                '                      <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                        <td width="40%" style="border: 1.5px solid #000; padding: 2px;">Rectifier #1</td>\n' +
-                '                        <td width="10%" style="border: 1.5px solid #000; padding: 2px;">Status</td>\n' +
-                '                        <td width="50%" style="border: 1.5px solid #000; padding: 2px;">Keterangan</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Kebersihan Rack</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
-                (r1.kebersihanRack || power.rect1KebersihanRack || '') +
-                '</td><td style="border: 1.5px solid #000; padding: 2px;">' +
-                (r1.kebersihanRackKet || power.rect1KebersihanRackKet || '') +
-                '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Cek Baut Kabinet</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
-                (r1.cekBautKabinet || power.rect1CekBautKabinet || '') +
-                '</td><td style="border: 1.5px solid #000; padding: 2px;">' +
-                (r1.cekBautKabinetKet || power.rect1CekBautKabinetKet || '') +
-                '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                        <td width="25%" style="border: 1.5px solid #000; padding: 2px;">Rectifier #2</td>\n' +
-                '                        <td width="10%" style="border: 1.5px solid #000; padding: 2px;">Status</td>\n' +
-                '                        <td width="65%" style="border: 1.5px solid #000; padding: 2px;">Keterangan</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Kebersihan Rack</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
-                (r2.kebersihanRack || power.rect2KebersihanRack || '') +
-                '</td><td style="border: 1.5px solid #000; padding: 2px;">' +
-                (r2.kebersihanRackKet || power.rect2KebersihanRackKet || '') +
-                '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Cek Baut Kabinet</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
-                (r2.cekBautKabinet || power.rect2CekBautKabinet || '') +
-                '</td><td style="border: 1.5px solid #000; padding: 2px;">' +
-                (r2.cekBautKabinetKet || power.rect2CekBautKabinetKet || '') +
-                '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                        <td width="25%" style="border: 1.5px solid #000; padding: 2px;">Rectifier #3</td>\n' +
-                '                        <td width="10%" style="border: 1.5px solid #000; padding: 2px;">Status</td>\n' +
-                '                        <td width="65%" style="border: 1.5px solid #000; padding: 2px;">Keterangan</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Kebersihan Rack</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
-                (r3.kebersihanRack || power.rect3KebersihanRack || '') +
-                '</td><td style="border: 1.5px solid #000; padding: 2px;">' +
-                (r3.kebersihanRackKet || power.rect3KebersihanRackKet || '') +
-                '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Cek Baut Kabinet</td>\n' +
-                '                        <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">' +
-                (r3.cekBautKabinet || power.rect3CekBautKabinet || '') +
-                '</td><td style="border: 1.5px solid #000; padding: 2px;">' +
-                (r3.cekBautKabinetKet || power.rect3CekBautKabinetKet || '') +
-                '</td>\n' +
-                '                      </tr>\n' +
-                '                    </table>\n' +
-                '                    <table style="width: 97%; border-collapse: collapse; border: 3px solid #000; margin-top: 5px;">\n' +
-                '                      <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                        <td width="60%" style="padding: 2px; border: 1.5px solid #000;">Grounding System</td>\n' +
-                '                        <td width="40%" style="padding: 2px; border: 1.5px solid #000;">Keterangan</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr style="text-align: center;">\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">Pengukuran Bak Kontrol Outdoor</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
+                '                        <td style="vertical-align: top; padding: 0; border: none;">\n' +
+                '                          <!-- GROUNDING SYSTEM (SEJAJAR ATAS DENGAN PENGECEKAN ARRESTER & TOTAL ARUS TERPAKAI) -->\n' +
+                '                          <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-top: 5px;">\n' +
+                '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
+                '                              <td width="60%" style="padding: 2px; border: 1.5px solid #000;">Grounding System</td>\n' +
+                '                              <td width="40%" style="padding: 2px; border: 1.5px solid #000;">Keterangan</td>\n' +
+                '                            </tr>\n' +
+                '                            <tr style="text-align: center;">\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">Pengukuran Bak Kontrol Outdoor</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
                 (power.grOutdoor || power.groundingOutdoor
                         ? String(power.grOutdoor || power.groundingOutdoor).toLowerCase().includes('ohm')
                                 ? (power.grOutdoor || power.groundingOutdoor)
                                 : (power.grOutdoor || power.groundingOutdoor) + ' Ohm'
                         : 'Ohm') +
                 '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr style="text-align: center;">\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">Pengukuran Bak Kontrol Indoor</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
+                '                            </tr>\n' +
+                '                            <tr style="text-align: center;">\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">Pengukuran Bak Kontrol Indoor</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
                 (power.grIndoor || power.groundingIndoor
                         ? String(power.grIndoor || power.groundingIndoor).toLowerCase().includes('ohm')
                                 ? (power.grIndoor || power.groundingIndoor)
                                 : (power.grIndoor || power.groundingIndoor) + ' Ohm'
                         : 'Ohm') +
                 '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr style="text-align: center;">\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">System Grounding</td>\n' +
-                '                        <td style="padding: 2px; border: 1.5px solid #000;">' +
+                '                            </tr>\n' +
+                '                            <tr style="text-align: center;">\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">System Grounding</td>\n' +
+                '                              <td style="padding: 2px; border: 1.5px solid #000;">' +
                 (me.systemGrounding || power.systemGrounding || 'Single') +
                 '</td>\n' +
-                '                      </tr>\n' +
-                '                      <tr style="text-align: center;">\n' +
-                '                        <td style="padding: 12px; border: 1.5px solid #000;">Catatan</td>\n' +
-                '                        <td style="padding: 12px; border: 1.5px solid #000;">' +
+                '                            </tr>\n' +
+                '                            <tr style="text-align: center;">\n' +
+                '                              <td style="padding: 12px; border: 1.5px solid #000;">Catatan</td>\n' +
+                '                              <td style="padding: 12px; border: 1.5px solid #000;">' +
                 (me.grCatatan ||
                         power.grCatatan ||
                         power.catatanGrounding ||
                         me.catatanGrounding ||
                         '') +
                 '</td>\n' +
+                '                            </tr>\n' +
+                '                          </table>\n' +
+                '                        </td>\n' +
                 '                      </tr>\n' +
                 '                    </table>\n' +
                 '                  </td>\n' +
@@ -1603,7 +1630,7 @@ var generatePdfHtml = function (
                 '                    <table style="width: 100%; border-collapse: collapse;">\n' +
                 '                      <tr>\n' +
                 '                        <td width="45%" style="vertical-align: top; padding-right: 5px; border:none;">\n' +
-                '                          <table style="width: 97%; border-collapse: collapse; border: 3px solid #000;">\n' +
+                '                          <table style="width: 97%; border-collapse: collapse; border: 2px solid #000;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td style="padding: 2px; border: 1.5px solid #000;">DESCRIPTION</td>\n' +
                 '                              <td style="padding: 2px; border: 1.5px solid #000;">RECTIFIER #1</td>\n' +
@@ -1809,7 +1836,7 @@ var generatePdfHtml = function (
                 '                          </table>\n' +
                 '                        </td>\n' +
                 '                        <td width="100%" style="vertical-align: top; border: none;">\n' +
-                '                          <table style="width: 99%; border-collapse: collapse; border: 3px solid #000; position: relative; top:-45px; margin-bottom:-20px;">\n' +
+                '                          <table style="width: 99%; border-collapse: collapse; border: 2px solid #000; position: relative; top:-45px; margin-bottom:-20px;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td colspan="10" style="padding: 2px; border: 1.5px solid #000;">BEBAN ACPDB</td>\n' +
                 '                            </tr>\n' +
@@ -1836,7 +1863,7 @@ var generatePdfHtml = function (
                 '                      </tr>\n' +
                 '                      <tr>\n' +
                 '                        <td width="46%" style="vertical-align: top; padding-right: 5px; border: none;">\n' +
-                '                          <table style="width: 97%; border-collapse: collapse; border: 3px solid #000;">\n' +
+                '                          <table style="width: 97%; border-collapse: collapse; border: 2px solid #000;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td colspan="10" style="padding: 2px; border: 1.5px solid #000;">BEBAN RECTIFIER</td>\n' +
                 '                            </tr>\n' +
@@ -1861,7 +1888,7 @@ var generatePdfHtml = function (
                 '                          </table>\n' +
                 '                        </td>\n' +
                 '                        <td width="55%" style="vertical-align: top; border: none;">\n' +
-                '                          <table style="width: 99%; border-collapse: collapse; border: 3px solid #000;">\n' +
+                '                          <table style="width: 99%; border-collapse: collapse; border: 2px solid #000;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td colspan="12" style="padding: 2px; border: 1.5px solid #000;">BEBAN DCPDB</td>\n' +
                 '                            </tr>\n' +
