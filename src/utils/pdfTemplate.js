@@ -333,6 +333,14 @@ var generatePdfHtml = function (
         var spacerRow =
                 '<tr><td colspan="17" style="height: 8px; background-color: #fff; border-left: none; border-right: none; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;"></td></tr>\n';
 
+        /* =========================================================================
+         * DOKUMENTASI TABEL: UJI KAPASITAS BATERAI
+         * Fungsi   : Pencatatan uji pengosongan (discharge test) berkala baterai bank 1, 2, 3
+         *            pada Rectifier #1 dan Rectifier #2.
+         * Interval : Menit 0, 15, 30, 45, 60, 75, 90, 105, 120, 150, 180, 210, 240, 300, 360, 420, 480.
+         * Parameter: Arus Beban (A), Tegangan Tiap Baterai / Cell (B1, B2, B3, B4), Total Tegangan Bank.
+         * Data     : batteryDischarge (Rectifier #1), batteryDischarge2 (Rectifier #2)
+         * ========================================================================= */
         var ujiKapasitasBateraiHtml =
                 '<table style="width: 99%; border-collapse: collapse; border: 3px solid #000; text-align: center; line-height: 1.1; margin-top: 8px; font-size: 16px;">\n' +
                 '  <tr style="font-size: 16px;">\n' +
@@ -362,7 +370,14 @@ var generatePdfHtml = function (
                 '  </tr>\n' +
                 '</table>\n';
 
-        /* --- Step Pengujian Helper --- */
+        /* =========================================================================
+         * DOKUMENTASI TABEL / PANEL: STEP PENGUJIAN & PROSEDUR BATERAI
+         * Fungsi   : Panduan operasional standar (SOP) pengujian kapasitas baterai POP:
+         *            1. Prosedur Dummyload Baterai (Langkah 1-7 beserta kurva & datasheet Narada 12NDF100)
+         *            2. Langkah-Langkah Uji Kapasitas Baterai (Metode Backup 2.1 a-g)
+         *            3. Kotak Tanda Tangan Pengesahan (Pelaksana / Serpo & Penanggung Jawab / PLN)
+         * Tata Letak: Ditempatkan di Kolom 4 (Side Panel) sejajar dengan Band 1 s.d Band 3.
+         * ========================================================================= */
         var stepPengujianHtml =
                 '<table style="width: 98%; border-collapse: collapse; border: 2px solid #000; font-size: 16px; line-height: 1.5; background-color: #fff; margin: 0; height: 100%;">\n' +
                 '  \n' +
@@ -1047,21 +1062,17 @@ var generatePdfHtml = function (
         );
 
         /* ============================================================================
-         * PAGE 2: POWER SYSTEM
-         * Bagian checklist preventive maintenance power system:
-         * - Catuan Utama & Eksternal (PLN & Genset)
-         * - Visual Check MDP (Main Distribution Panel)
-         * - Rectifier Checklist
-         * - Step Pengujian Beban & Baterai
+         * PAGE 2: POWER SYSTEM (CATUAN & DISTRIBUSI UTAMA)
          * ============================================================================ */
         htmlParts.push(
                 '        <!-- ======================================================= -->\n' +
                 '        <!-- PAGE 2: POWER SYSTEM (CATUAN & DISTRIBUSI UTAMA)        -->\n' +
                 '        <!-- ======================================================= -->\n' +
-                '        <table class="power-system-table" style="width: 220%; zoom: 0.45; border: 2px solid #000; margin-bottom: 20px; font-size: 11px;">\n' +
+                '        <div style="width: 100%; display: flex; justify-content: center; margin: 0 auto; box-sizing: border-box;">\n' +
+                '        <table class="power-system-table" style="border: 2px solid #000; width: 220%; zoom: 0.45; table-layout: fixed; border-collapse: collapse; margin: 0 auto 20px auto; font-size: 11px; box-sizing: border-box;">\n' +
                 '          <tr>\n' +
-                '            <td colspan="12" style="padding: 0; border: none; border-right: 2px solid #000;">\n' +
-                '              <table style="width: 47%; border-collapse: collapse; border: none; margin: 0; padding: 0;">\n' +
+                '            <td style="width: 100%; padding: 0; border: none; vertical-align: top;">\n' +
+                '              <table style="width: 100%; border-collapse: collapse; border: none; margin: 0; padding: 0;">\n' +
                 '                <tr>\n' +
                 '                  <td width="20%" style="border: none; border-bottom: 2px solid #000; text-align: center; padding: 10px;">\n' +
                 '                    <img src="' +
@@ -1081,10 +1092,6 @@ var generatePdfHtml = function (
                 '                  </td>\n' +
                 '                </tr>\n' +
                 '              </table>\n' +
-                '            </td>\n' +
-                '          </tr>\n' +
-                '          <tr>\n' +
-                '            <td colspan="12" style="padding: 0; border: none; margin: 0; border-right: 2px solid #000;">\n' +
                 '              <table style="width: 15%; border-collapse: collapse; border: none; margin: 0; padding: 0;">\n' +
                 '                <tr>\n' +
                 '                  <td width="4%" style="border: none; padding: 5px 10px;"><b>NAMA POP</b></td>\n' +
@@ -1101,13 +1108,8 @@ var generatePdfHtml = function (
                 '</b></td>\n' +
                 '                </tr>\n' +
                 '              </table>\n' +
-                '            </td>\n' +
-                '          </tr>\n' +
-                '          <!-- TABEL CATUAN UTAMA & EKSTERNAL (SIDE BY SIDE) -->\n' +
-                '          <tr>\n' +
-                '            <td colspan="12" style="padding: 10px 0; border: none; text-align: left; border-right: 2px solid #000;">\n' +
                 '              <!-- FOUR COLUMN WIDE LAYOUT (SCALED TO FIT PORTRAIT) -->\n' +
-                '              <table style="width: 46%; border-collapse: collapse; border: none; margin: 0; font-size: 16px;">\n' +
+                '              <table style="width: 100%; border-collapse: collapse; border: none; margin: 10px 0 0 0; font-size: 16px;">\n' +
                 '                <tr>\n' +
                 '                  <!-- LEFT 3 COLUMNS: GRID ALIGNED INTO 3 HORIZONTAL BANDS -->\n' +
                 '                  <td colspan="3" width="65%" style="vertical-align: top; padding: 0; padding-right: 5px; border: none;">\n' +
@@ -1118,27 +1120,39 @@ var generatePdfHtml = function (
                 '                          <table style="width: 100%; height: 100%; border-collapse: collapse; border: none; margin: 0; padding: 0;">\n' +
                 '                            <tr>\n' +
                 '                              <td width="48%" style="padding: 0; border: none; vertical-align: top;">\n' +
-                '                                <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000; margin: 0;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: CATUAN UTAMA (PLN)
+                 * Fungsi   : Menampilkan tipe/sumber catuan listrik utama PLN.
+                 * Data     : power.tipePln (1 Fasa / 3 Fasa / Pasca Bayar / Pra Bayar)
+                 * --------------------------------------------------------- */
+                '                                <!-- DOKUMENTASI: TABEL CATUAN UTAMA (PLN) -->\n' +
+                '                                <table style="width: 61.5%; height: 100%; border-collapse: collapse; border: 2px solid #000; margin: 0;">\n' +
                 '                                  <tr style="background-color: red; color: white; font-weight: bold; text-align: center; height: 1px;">\n' +
                 '                                    <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">Catuan Utama</td>\n' +
                 '                                  </tr>\n' +
                 '                                  <tr>\n' +
-                '                                    <td width="30%" style="font-weight: bold; padding: 2px; border: 1.5px solid #000;">PLN</td>\n' +
-                '                                    <td width="70%" style="padding: 2px; border: 1.5px solid #000;">: ' +
+                '                                    <td width="50%" style="font-weight: bold; padding: 2px; border: 1.5px solid #000;">PLN</td>\n' +
+                '                                    <td width="50%" style="padding: 2px; border: 1.5px solid #000;">: ' +
                 (power.tipePln || '-') +
                 '</td>\n' +
                 '                                  </tr>\n' +
                 '                                </table>\n' +
                 '                              </td>\n' +
                 '                              <td width="4%" style="border: none;"></td>\n' +
-                '                              <td width="48%" style="padding: 0; border: none; vertical-align: top;">\n' +
-                '                                <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000; margin: 0;">\n' +
+                '                              <td width="46.5%" style="padding: 0; border: none; vertical-align: top;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: CATUAN EKSTERNAL (GENSET)
+                 * Fungsi   : Menampilkan ketersediaan catuan cadangan genset.
+                 * Data     : formData.genset.gensetAda / power.gensetAda (Ada / Tidak Ada)
+                 * --------------------------------------------------------- */
+                '                                <!-- DOKUMENTASI: TABEL CATUAN EKSTERNAL (GENSET) -->\n' +
+                '                                <table style="width: 60%; height: 100%; border-collapse: collapse; border: 2px solid #000; margin: 0;">\n' +
                 '                                  <tr style="background-color: red; color: white; font-weight: bold; text-align: center; height: 1px;">\n' +
                 '                                    <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">Catuan Eksternal</td>\n' +
                 '                                  </tr>\n' +
                 '                                  <tr>\n' +
-                '                                    <td width="30%" style="font-weight: bold; padding: 2px; border: 1.5px solid #000;">Genset</td>\n' +
-                '                                    <td width="70%" style="padding: 2px; border: 1.5px solid #000;">: ' +
+                '                                    <td width="40%" style="font-weight: bold; padding: 2px; border: 1.5px solid #000;">Genset</td>\n' +
+                '                                    <td width="60%" style="padding: 2px; border: 1.5px solid #000;">: ' +
                 ((formData.genset && formData.genset.gensetAda) || power.gensetAda || '-') +
                 '</td>\n' +
                 '                                  </tr>\n' +
@@ -1151,8 +1165,15 @@ var generatePdfHtml = function (
                 '                          <!-- Kosong di atas Visual Check MDP -->\n' +
                 '                        </td>\n' +
                 '                        <td width="23%" style="vertical-align: top; padding: 0 0 0 0; border: none;">\n' +
-                '                          <!-- RECTIFIER #1 (MENYATU DENGAN RECTIFIER #2 DI BAWAHNYA) -->\n' +
-                '                          <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000; border-bottom: none; margin: 0;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: RECTIFIER #1 (FISIK KABINET)
+                 * Fungsi   : Pemeriksaan fisik kebersihan rak & baut kabinet Rectifier #1.
+                 * Parameter: Kebersihan Rack, Cek Baut Kabinet.
+                 * Data     : r1.kebersihanRack, r1.kebersihanRackKet,
+                 *            r1.cekBautKabinet, r1.cekBautKabinetKet
+                 * --------------------------------------------------------- */
+                '                          <!-- DOKUMENTASI: TABEL RECTIFIER #1 (FISIK KABINET) -->\n' +
+                '                          <table style="width: 95%; height: 100%; border-collapse: collapse; border: 2px solid #000; border-bottom: none; margin: 0;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center; height: 1px;">\n' +
                 '                              <td width="40%" style="border: 1.5px solid #000; padding: 2px;">Rectifier #1</td>\n' +
                 '                              <td width="15%" style="border: 1.5px solid #000; padding: 2px;">Status</td>\n' +
@@ -1182,15 +1203,27 @@ var generatePdfHtml = function (
                 '                      <!-- BAND 2: MIDDLE (SEJAJAR ATAS: Merk Genset, Visual Check MDP, Rectifier #2 | SEJAJAR BAWAH: Phasa, COS Genset, Cek Baut Kabinet) -->\n' +
                 '                      <tr>\n' +
                 '                        <td style="vertical-align: top; padding: 0 5px 5px 0; border: none;">\n' +
-                '                          <!-- CATUAN TABLE: ID Pelanggan / Merk Genset ... Bulan Lalu / Phasa -->\n' +
-                '                          <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: CATUAN LISTRIK (PLN & GENSET)
+                 * Fungsi   : Menampilkan identitas langganan PLN dan spesifikasi genset.
+                 * Sisi Kiri (PLN)    : ID Pelanggan, Daya Listrik (kVA), Phasa,
+                 *                      Pengukuran KWH, Bulan Ini, Bulan Lalu.
+                 * Sisi Kanan (Genset): Merk Genset, Serial Number, Jenis Genset,
+                 *                      Tipe Genset, Kapasitas, Phasa.
+                 * Data     : power.idPelanggan, power.dayaListrik, power.phasaCatuan,
+                 *            power.pengukuranKwh, power.bulanIni, power.bulanLalu,
+                 *            power.merkGenset, power.snGenset, power.jenisGenset,
+                 *            power.tipeGenset, power.kapasitasGenset, power.phasaGenset
+                 * --------------------------------------------------------- */
+                '                          <!-- DOKUMENTASI: TABEL CATUAN LISTRIK (PLN & GENSET) -->\n' +
+                '                          <table style="width: 96%; height: 100%; border-collapse: collapse; border: 2px solid #000;">\n' +
                 '                            <tr>\n' +
                 '                              <td width="25%" style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">ID Pelanggan</td>\n' +
-                '                              <td width="25%" style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                              <td width="20%" style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.idPelanggan || kwh.idCustomer || '') +
                 '</td>\n' +
-                '                              <td width="25%" style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Merk Genset</td>\n' +
-                '                              <td width="25%" style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
+                '                              <td width="20%" style="background-color: red; color: white; font-weight: bold; border: 1.5px solid #000; padding: 2px;">Merk Genset</td>\n' +
+                '                              <td width="20%" style="border: 1.5px solid #000; padding: 2px; font-weight: bold;">: ' +
                 (power.gensetAda === 'Ada' ? power.merkGenset || '' : '') +
                 '</td>\n' +
                 '                            </tr>\n' +
@@ -1249,15 +1282,24 @@ var generatePdfHtml = function (
                 '                          </table>\n' +
                 '                        </td>\n' +
                 '                        <td style="vertical-align: top; padding: 0 5px 5px 0; border: none;">\n' +
-                '                          <!-- VISUAL CHECK MDP: Header ... COS Genset -->\n' +
-                '                          <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: VISUAL CHECK MDP
+                 * Fungsi   : Pemeriksaan visual & mekanik panel MDP (kabel, terminal,
+                 *            MCB/MCCB, lampu indikator fasa, dan saklar COS genset).
+                 * Parameter: Cek Kabel, Cek Baut Terminal, Cek Baut MCB/MCCB,
+                 *            Indikator Lamp R,S,T, COS Genset.
+                 * Data     : power.cekKabel, power.cekBautTerminal, power.cekBautMCB,
+                 *            power.indikatorLamp, power.cosGenset (+ Keterangan & Catatan)
+                 * --------------------------------------------------------- */
+                '                          <!-- DOKUMENTASI: TABEL VISUAL CHECK MDP -->\n' +
+                '                          <table style="width: 98%; height: 100%; border-collapse: collapse; border: 2px solid #000;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td colspan="2" width="36%" style="border: 1.5px solid #000; padding: 2px;">Visual Check MDP</td>\n' +
                 '                              <td width="30%" style="border: 1.5px solid #000; padding: 2px;">Keterangan</td>\n' +
                 '                              <td width="34%" style="border: 1.5px solid #000; padding: 2px;">Catatan</td>\n' +
                 '                            </tr>\n' +
                 '                            <tr>\n' +
-                '                              <td width="20%" style="border: 1.5px solid #000; padding: 2px;"><b>Cek Kabel</b></td>\n' +
+                '                              <td width="20%" style="border: 1.5px solid #000; padding: 2px;">Cek Kabel</td>\n' +
                 '                              <td width="10%" style="border: 1.5px solid #000; padding: 2px;">' +
                 (power.cekKabel ? ': ' + power.cekKabel : ':') +
                 '</td>\n' +
@@ -1267,7 +1309,7 @@ var generatePdfHtml = function (
                 '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui kondisi kabel terbakar, terkelupas</td>\n' +
                 '                            </tr>\n' +
                 '                            <tr>\n' +
-                '                              <td style="border: 1.5px solid #000; padding: 2px;"><b>Cek Baut Terminal</b></td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;">Cek Baut Terminal</td>\n' +
                 '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
                 (power.cekBautTerminal ? ': ' + power.cekBautTerminal : ':') +
                 '</td>\n' +
@@ -1277,7 +1319,7 @@ var generatePdfHtml = function (
                 '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui tingkat kekencangan</td>\n' +
                 '                            </tr>\n' +
                 '                            <tr>\n' +
-                '                              <td style="border: 1.5px solid #000; padding: 2px;"><b>Cek Baut MCB/MCCB</b></td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;">Cek Baut MCB/MCCB</td>\n' +
                 '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
                 (power.cekBautMCB ? ': ' + power.cekBautMCB : ':') +
                 '</td>\n' +
@@ -1287,7 +1329,7 @@ var generatePdfHtml = function (
                 '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui tingkat kekencangan</td>\n' +
                 '                            </tr>\n' +
                 '                            <tr>\n' +
-                '                              <td style="border: 1.5px solid #000; padding: 2px;"><b>Indikator Lamp R,S,T</b></td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;">Indikator Lamp R,S,T</td>\n' +
                 '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
                 (power.indikatorLamp ? ': ' + power.indikatorLamp : ':') +
                 '</td>\n' +
@@ -1297,7 +1339,7 @@ var generatePdfHtml = function (
                 '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui kondisi mati, hilang</td>\n' +
                 '                            </tr>\n' +
                 '                            <tr>\n' +
-                '                              <td style="border: 1.5px solid #000; padding: 2px;"><b>COS Genset</b></td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;">COS Genset</td>\n' +
                 '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
                 (power.cosGenset ? ': ' + power.cosGenset : ':') +
                 '</td>\n' +
@@ -1309,8 +1351,18 @@ var generatePdfHtml = function (
                 '                          </table>\n' +
                 '                        </td>\n' +
                 '                        <td width="23%" style="vertical-align: top; padding: 0 0 5px 0; border: none;">\n' +
-                '                          <!-- RECTIFIER #2 & #3 (SEJAJAR ATAS DENGAN VISUAL CHECK MDP & BAWAH DENGAN COS GENSET) -->\n' +
-                '                          <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none; margin: 0;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: RECTIFIER #2 & RECTIFIER #3 (FISIK KABINET)
+                 * Fungsi   : Pemeriksaan fisik kebersihan rak & baut kabinet Rectifier #2 & #3.
+                 *            (Melanjutkan modul vertikal Rectifier di bawah Rectifier #1).
+                 * Parameter: Kebersihan Rack, Cek Baut Kabinet.
+                 * Data     : r2.kebersihanRack, r2.kebersihanRackKet,
+                 *            r2.cekBautKabinet, r2.cekBautKabinetKet,
+                 *            r3.kebersihanRack, r3.kebersihanRackKet,
+                 *            r3.cekBautKabinet, r3.cekBautKabinetKet
+                 * --------------------------------------------------------- */
+                '                          <!-- DOKUMENTASI: TABEL RECTIFIER #2 & #3 (FISIK KABINET) -->\n' +
+                '                          <table style="width: 95%; height: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none; margin: 0;">\n' +
                 '                            <!-- RECTIFIER #2 -->\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td width="40%" style="border: 1.5px solid #000; padding: 2px;">Rectifier #2</td>\n' +
@@ -1368,9 +1420,21 @@ var generatePdfHtml = function (
                 '                          <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 5px; margin-bottom: 5px;">\n' +
                 '                            <tr>\n' +
                 '                              <td width="51%" style="vertical-align: top; padding: 0; border: none;">\n' +
-                '                                <table style="width: 100%; border-collapse: collapse; border: 2px solid #000;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: TEGANGAN CATUAN (AC)
+                 * Fungsi   : Pengukuran tegangan AC fasa-ke-netral & fasa-ke-fasa.
+                 * Parameter: R-N, S-N, T-N (Tolak ukur: 220 ± 10% V),
+                 *            R-T, S-T, R-S (Tolak ukur: 400 ± 10% V),
+                 *            G-N (Ground ke Netral).
+                 * Data     : power.teganganR_N/vRn, power.teganganS_N/vSn,
+                 *            power.teganganT_N/vTn, power.teganganR_T/vRt,
+                 *            power.teganganS_T/vSt, power.teganganR_S/vRs,
+                 *            power.teganganG_N/vGn (+ Tolak Ukur _TU)
+                 * --------------------------------------------------------- */
+                '                                <!-- DOKUMENTASI: TABEL TEGANGAN CATUAN (AC) -->\n' +
+                '                                <table style="width: 100%; border-collapse: collapse; border: none;">\n' +
                 '                                  <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                                    <td colspan="3" style="padding: 2px; border: 1.5px solid #000;">TEGANGAN CATUAN (AC)</td>\n' +
+                '                                    <td colspan="3" style="padding: 2px; border: none;">TEGANGAN CATUAN (AC)</td>\n' +
                 '                                  </tr>\n' +
                 '                                  <tr style="text-align: center; font-weight: bold;">\n' +
                 '                                    <td width="25%" style="padding: 2px; border: 1.5px solid #000;">Phasa</td>\n' +
@@ -1444,9 +1508,19 @@ var generatePdfHtml = function (
                 '                              </td>\n' +
                 '                              <td width="6%" style="border: none;"></td>\n' +
                 '                              <td width="49%" style="vertical-align: top; padding: 0; border: none;">\n' +
-                '                                <table style="width: 100%; border-collapse: collapse; border: 2px solid #000;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: TOTAL ARUS TERPAKAI (AC) & STABILIZER
+                 * Fungsi   : Pengukuran arus AC beban operasional per fasa,
+                 *            frekuensi jaringan (Hz), dan kapasitas stabilizer.
+                 * Parameter: Phasa (A), Frekuensi (Hz), Arus R, S, T,
+                 *            Kapasitas Stabilizer (kVA), Jumlah Stabilizer.
+                 * Data     : power.phasaArus, power.frekuensi, power.arusPhasaR/S/T,
+                 *            power.stabilizerKapasitas, power.stabilizerJumlah
+                 * --------------------------------------------------------- */
+                '                                <!-- DOKUMENTASI: TABEL TOTAL ARUS TERPAKAI & STABILIZER -->\n' +
+                '                                <table style="width: 90%; border-collapse: collapse; border: none;">\n' +
                 '                                  <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                                    <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">TOTAL ARUS TERPAKAI (AC)</td>\n' +
+                '                                    <td colspan="2" style="padding: 2px; border: none;">TOTAL ARUS TERPAKAI (AC)</td>\n' +
                 '                                  </tr>\n' +
                 '                                  <tr style="text-align: center;">\n' +
                 '                                    <td width="50%" style="padding: 2px; border: 1.5px solid #000;">Phasa (A)</td>\n' +
@@ -1479,7 +1553,7 @@ var generatePdfHtml = function (
                 '</td>\n' +
                 '                                  </tr>\n' +
                 '                                  <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                                    <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">STABILIZER</td>\n' +
+                '                                    <td colspan="2" style="padding: 2px; border: none;">STABILIZER</td>\n' +
                 '                                  </tr>\n' +
                 '                                  <tr style="text-align: center;">\n' +
                 '                                    <td style="padding: 2px; border: 1.5px solid #000;">Kapasitas (kVA)</td>\n' +
@@ -1499,7 +1573,16 @@ var generatePdfHtml = function (
                 '                          </table>\n' +
                 '                        </td>\n' +
                 '                        <td style="vertical-align: top; padding: 0 5px 0 0; border: none;">\n' +
-                '                          <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-top: 5px;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: PENGECEKAN ARRESTER (SURGE ARRESTER)
+                 * Fungsi   : Pengecekan status proteksi surja (Surge Protection Device)
+                 *            pada KWH Box, panel ACPDB, dan Rectifier.
+                 * Parameter: Fasa R, S, T, dan N (Netral). Status OK / Alarm.
+                 * Data     : power.kwhBoxR..N, power.acpdbR..N,
+                 *            power.rectifierR..N, power.arresterKetR..N
+                 * --------------------------------------------------------- */
+                '                          <!-- DOKUMENTASI: TABEL PENGECEKAN ARRESTER -->\n' +
+                '                          <table style="width: 98%; border-collapse: collapse; border: 2px solid #000; margin-top: 5px;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td colspan="5" style="padding: 2px; border: 1.5px solid #000;">PENGECEKAN ARRESTER</td>\n' +
                 '                            </tr>\n' +
@@ -1573,8 +1656,17 @@ var generatePdfHtml = function (
                 '                          </table>\n' +
                 '                        </td>\n' +
                 '                        <td style="vertical-align: top; padding: 0; border: none;">\n' +
-                '                          <!-- GROUNDING SYSTEM (SEJAJAR ATAS DENGAN PENGECEKAN ARRESTER & TOTAL ARUS TERPAKAI) -->\n' +
-                '                          <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-top: 5px;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: GROUNDING SYSTEM (SISTEM PENTANAHAN)
+                 * Fungsi   : Pengukuran nilai resistansi pentanahan (Ohm) gedung & perangkat.
+                 * Parameter: Pengukuran Bak Kontrol Outdoor, Bak Kontrol Indoor,
+                 *            System Grounding (Single/Mesh), dan Catatan Khusus.
+                 * Data     : power.grOutdoor/groundingOutdoor,
+                 *            power.grIndoor/groundingIndoor,
+                 *            me.systemGrounding, power.grCatatan
+                 * --------------------------------------------------------- */
+                '                          <!-- DOKUMENTASI: TABEL GROUNDING SYSTEM -->\n' +
+                '                          <table style="width: 95%; border-collapse: collapse; border: 2px solid #000; margin-top: 5px;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td width="60%" style="padding: 2px; border: 1.5px solid #000;">Grounding System</td>\n' +
                 '                              <td width="40%" style="padding: 2px; border: 1.5px solid #000;">Keterangan</td>\n' +
@@ -1620,7 +1712,13 @@ var generatePdfHtml = function (
                 '                      </tr>\n' +
                 '                    </table>\n' +
                 '                  </td>\n' +
-                '                  <!-- COLUMN 4: STEP PENGUJIAN -->\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI PANEL: STEP PENGUJIAN & PROSEDUR BATERAI
+                 * Fungsi   : SOP pengujian dummyload baterai, langkah uji kapasitas,
+                 *            dan lembar tanda tangan (Pelaksana / Serpo & PLN).
+                 * Variabel : stepPengujianHtml (Rowspan 2, Kolom 4)
+                 * --------------------------------------------------------- */
+                '                  <!-- DOKUMENTASI: PANEL STEP PENGUJIAN (KOLOM 4) -->\n' +
                 '                  <td width="25%" rowspan="2" style="vertical-align: top; border:none; padding: 0; padding-left: 1.5px;">\n' +
                 stepPengujianHtml +
                 '                  </td>\n' +
@@ -1630,6 +1728,16 @@ var generatePdfHtml = function (
                 '                    <table style="width: 100%; border-collapse: collapse;">\n' +
                 '                      <tr>\n' +
                 '                        <td width="45%" style="vertical-align: top; padding-right: 5px; border:none;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: DESCRIPTION RECTIFIER #1, #2, #3 & ACUAN
+                 * Fungsi   : Evaluasi spesifikasi teknis 15 parameter kerja
+                 *            Rectifier #1, #2, #3 terhadap nilai standar acuan:
+                 * Parameter: Input AC, Merk, Tipe, Slot, SN, Tipe Modul, Modul Terpasang,
+                 *            Kapasitas Modul, Arus Beban, Tegangan Input/Floating/Equalizing,
+                 *            LVD Threshold, Boost Charge, Utilisasi (%).
+                 * Data     : r1 / r2 / r3 (inputAC, merk, tipe, modulTerpasang, dll.)
+                 * --------------------------------------------------------- */
+                '                          <!-- DOKUMENTASI: TABEL DESCRIPTION RECTIFIER & ACUAN -->\n' +
                 '                          <table style="width: 97%; border-collapse: collapse; border: 2px solid #000;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td style="padding: 2px; border: 1.5px solid #000;">DESCRIPTION</td>\n' +
@@ -1836,6 +1944,13 @@ var generatePdfHtml = function (
                 '                          </table>\n' +
                 '                        </td>\n' +
                 '                        <td width="100%" style="vertical-align: top; border: none;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: BEBAN ACPDB
+                 * Fungsi   : Monitoring arus AC pada tiap pemutus arus (MCB 1-15):
+                 * Parameter: Kapasitas MCB, Beban & Arus Fasa R, S, T, Label MCB, Peruntukan.
+                 * Data     : bebanAcpdbRows (acpdb.bebanR, bebanS, bebanT)
+                 * --------------------------------------------------------- */
+                '                          <!-- DOKUMENTASI: TABEL BEBAN ACPDB -->\n' +
                 '                          <table style="width: 99%; border-collapse: collapse; border: 2px solid #000; position: relative; top:-45px; margin-bottom:-20px;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td colspan="10" style="padding: 2px; border: 1.5px solid #000;">BEBAN ACPDB</td>\n' +
@@ -1863,6 +1978,13 @@ var generatePdfHtml = function (
                 '                      </tr>\n' +
                 '                      <tr>\n' +
                 '                        <td width="46%" style="vertical-align: top; padding-right: 5px; border: none;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: BEBAN RECTIFIER
+                 * Fungsi   : Distribusi beban DC pada modul Rectifier #1, #2, #3 (MCB 1-15):
+                 * Parameter: Kapasitas MCB, Arus Terpakai (A), dan Identitas Network Element (Nama NE).
+                 * Data     : bebanRectifierRows (rectifiers[i].beban)
+                 * --------------------------------------------------------- */
+                '                          <!-- DOKUMENTASI: TABEL BEBAN RECTIFIER -->\n' +
                 '                          <table style="width: 97%; border-collapse: collapse; border: 2px solid #000;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td colspan="10" style="padding: 2px; border: 1.5px solid #000;">BEBAN RECTIFIER</td>\n' +
@@ -1888,6 +2010,13 @@ var generatePdfHtml = function (
                 '                          </table>\n' +
                 '                        </td>\n' +
                 '                        <td width="55%" style="vertical-align: top; border: none;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: BEBAN DCPDB
+                 * Fungsi   : Monitoring arus DC pada panel pembagi DCPDB #1 s.d DCPDB #5 (MCB 1-15):
+                 * Parameter: Kapasitas MCB, Beban, dan Arus (A) untuk tiap panel DCPDB.
+                 * Data     : bebanDcpdbRows (dcpdb.beban)
+                 * --------------------------------------------------------- */
+                '                          <!-- DOKUMENTASI: TABEL BEBAN DCPDB -->\n' +
                 '                          <table style="width: 99%; border-collapse: collapse; border: 2px solid #000;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td colspan="12" style="padding: 2px; border: 1.5px solid #000;">BEBAN DCPDB</td>\n' +
@@ -1919,6 +2048,13 @@ var generatePdfHtml = function (
                 '                      </tr>\n' +
                 '                      <tr>\n' +
                 '                        <td colspan="2" style="padding-top: 10px; border: none;">\n' +
+                /* ---------------------------------------------------------
+                 * DOKUMENTASI TABEL: TABEL UJI KAPASITAS BATERAI (PENEMPATAN)
+                 * Fungsi   : Tabel pengujian pengosongan baterai Rectifier #1 & #2
+                 *            (Bank 1, 2, 3 dari menit ke-0 s.d 480).
+                 * Variabel : ujiKapasitasBateraiHtml
+                 * --------------------------------------------------------- */
+                '<!-- DOKUMENTASI: TABEL UJI KAPASITAS BATERAI -->\n' +
                 ujiKapasitasBateraiHtml +
                 '                        </td>\n' +
                 '                      </tr>\n' +
@@ -1929,6 +2065,7 @@ var generatePdfHtml = function (
                 '            </td>\n' +
                 '          </tr>\n' +
                 '        </table>\n' +
+                '        </div>\n' +
                 '        <div class="page-break"></div>\n',
         );
 
@@ -5217,13 +5354,15 @@ var generatePdfSections = function (
                                 'px; box-sizing: border-box; background: #fff;';
 
                         if (isPowerSystem) {
-                                // Preserve original layout, zoom, and table proportions so tables do NOT squish or deflate.
-                                // overflow: hidden on the wrapper clips any content beyond the container edge.
-                                bodyStyle += ' overflow-x: hidden !important; max-width: ' + pageWidth + 'px;';
+                                // Posisikan di tengah (center-aligned)
+                                bodyStyle =
+                                        'padding: 15px; margin: 0 auto; width: ' +
+                                        pageWidth +
+                                        'px; box-sizing: border-box; background: #fff; overflow-x: hidden !important; max-width: ' +
+                                        pageWidth +
+                                        'px;';
                                 trimmed =
-                                        '<div style="width: 100%; max-width: ' +
-                                        (pageWidth - 30) +
-                                        'px; overflow: hidden; box-sizing: border-box;">' +
+                                        '<div style="width: 100%; margin: 0 auto; box-sizing: border-box; display: flex; justify-content: center;">' +
                                         trimmed +
                                         '</div>';
                         }
