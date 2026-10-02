@@ -212,8 +212,8 @@ var generatePdfHtml = function (
                 return acList[idx] ? acList[idx][field] || '' : '';
         };
 
-        /* --- Uji Kapasitas Baterai Helper --- */
-        var renderBankUjiKapasitas = function (rectIdx, bankNum) {
+        /* --- Uji Kapasitas Baterai Helper (Single Flat Table) --- */
+        var renderBankUjiKapasitasCombined = function (bankNum) {
                 // Sesuai permintaan: Tabel uji kapasitas tidak mengambil data manapun dulu (dikosongkan)
                 var merk = '';
                 var tipe = '';
@@ -237,23 +237,30 @@ var generatePdfHtml = function (
                         '480',
                 ];
 
-                var minutesHeader = dischargeMinutes
-                        .map(function (m) {
-                                return (
-                                        '<td style="border: 1.5px solid #000; padding: 2px; width: 4.5%; font-size: 16px; font-weight: bold; text-align: center;">' +
-                                        m +
-                                        '</td>'
-                                );
-                        })
-                        .join('');
-                minutesHeader +=
-                        '<td style="border: 1.5px solid #000; padding: 2px; width: 8%; font-size: 16px; font-weight: bold; text-align: center;">Suhu Awal</td>';
-                minutesHeader +=
-                        '<td style="border: 1.5px solid #000; padding: 2px; width: 8%; font-size: 16px; font-weight: bold; text-align: center;">Suhu Akhir</td>';
-
-                var getCellData = function (cellNum) {
-                        var dataCells = dischargeMinutes
+                var makeMinutesHeader = function (isLeft) {
+                        var borderMid = isLeft ? 'border-right: 3px solid #000;' : '';
+                        var headerCells = dischargeMinutes
                                 .map(function (m) {
+                                        return (
+                                                '<td style="border: 1.5px solid #000; padding: 2px; width: 2.25%; font-size: 16px; font-weight: bold; text-align: center;">' +
+                                                m +
+                                                '</td>'
+                                        );
+                                })
+                                .join('');
+                        headerCells +=
+                                '<td style="border: 1.5px solid #000; padding: 2px; width: 4%; font-size: 16px; font-weight: bold; text-align: center;">Suhu Awal</td>';
+                        headerCells +=
+                                '<td style="border: 1.5px solid #000; ' +
+                                borderMid +
+                                ' padding: 2px; width: 4%; font-size: 16px; font-weight: bold; text-align: center;">Suhu Akhir</td>';
+                        return headerCells;
+                };
+
+                var makeCellData = function (isLeft) {
+                        var borderMid = isLeft ? 'border-right: 3px solid #000;' : '';
+                        var dataCells = dischargeMinutes
+                                .map(function () {
                                         return (
                                                 '<td style="border: 1.5px solid #000; padding: 2px; font-size: 16px; text-align: center;"></td>'
                                         );
@@ -262,61 +269,123 @@ var generatePdfHtml = function (
                         dataCells +=
                                 '<td style="border: 1.5px solid #000; padding: 2px; font-size: 16px; text-align: center;"></td>';
                         dataCells +=
-                                '<td style="border: 1.5px solid #000; padding: 2px; font-size: 16px; text-align: center;"></td>';
+                                '<td style="border: 1.5px solid #000; ' +
+                                borderMid +
+                                ' padding: 2px; font-size: 16px; text-align: center;"></td>';
                         return dataCells;
                 };
 
-                var empty13 = '';
-                for (var i = 0; i < 13; i++) {
-                        empty13 +=
-                                '<td style="border: 1.5px solid #000; padding: 2px; font-size: 16px;"></td>';
-                }
+                var makeEmpty13 = function (isLeft) {
+                        var borderMid = isLeft ? 'border-right: 3px solid #000;' : '';
+                        var emptyStr = '';
+                        for (var i = 0; i < 12; i++) {
+                                emptyStr +=
+                                        '<td style="border: 1.5px solid #000; padding: 2px; font-size: 16px;"></td>';
+                        }
+                        emptyStr +=
+                                '<td style="border: 1.5px solid #000; ' +
+                                borderMid +
+                                ' padding: 2px; font-size: 16px;"></td>';
+                        return emptyStr;
+                };
 
-                var html =
+                var html = '';
+
+                // Row 1: Header Bank
+                html +=
                         '  <tr style="background-color: #fff; font-size: 16px; text-align: center;">\n' +
-                        '    <td colspan="2" width="15%" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">BANK ' +
+                        '  <td colspan="2" width="7.5%" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">BANK ' +
                         bankNum +
                         '</td>\n' +
-                        '    <td width="5%" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">NO</td>\n' +
+                        '    <td width="2.5%" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">NO</td>\n' +
+                        '    <td colspan="14" style="padding: 2px; border: 1.5px solid #000; border-right: 3px solid #000; font-size: 16px; font-weight: bold; text-align: center;">WAKTU DISCHARGE (MENIT)</td>\n' +
+                        '    <td colspan="2" width="7.5%" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">BANK ' +
+                        bankNum +
+                        '</td>\n' +
+                        '    <td width="2.5%" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">NO</td>\n' +
                         '    <td colspan="14" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">WAKTU DISCHARGE (MENIT)</td>\n' +
-                        '  </tr>\n' +
+                        '  </tr>\n';
+
+                // Row 2: MERK & Header Menit
+                html +=
                         '  <tr style="background-color: #fff; font-size: 16px; text-align: center;">\n' +
-                        '    <td rowspan="2" width="10%" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; text-align: center;">MERK</td>\n' +
-                        '    <td rowspan="2" width="5%" style="padding: 2px; border: 1.5px solid #000; text-align: center; font-size: 16px;">' +
+                        '    <td rowspan="2" width="5%" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; text-align: center;">MERK</td>\n' +
+                        '    <td rowspan="2" width="2.5%" style="padding: 2px; border: 1.5px solid #000; text-align: center; font-size: 16px;">' +
                         merk +
                         '</td>\n' +
                         '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">CELL</td>\n' +
-                        minutesHeader +
+                        makeMinutesHeader(true) +
                         '\n' +
-                        '  </tr>\n' +
+                        '    <td rowspan="2" width="5%" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; text-align: center;">MERK</td>\n' +
+                        '    <td rowspan="2" width="2.5%" style="padding: 2px; border: 1.5px solid #000; text-align: center; font-size: 16px;">' +
+                        merk +
+                        '</td>\n' +
+                        '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">CELL</td>\n' +
+                        makeMinutesHeader(false) +
+                        '\n' +
+                        '  </tr>\n';
+
+                // Row 3: Cell 1
+                html +=
                         '  <tr style="background-color: #fff; font-size: 16px; text-align: center;">\n' +
                         '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">1</td>\n' +
-                        getCellData(1) +
+                        makeCellData(true) +
                         '\n' +
-                        '  </tr>\n' +
-                        '  <tr style="background-color: #fff; font-size: 16px; text-align: center;">\n' +
+                        '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">1</td>\n' +
+                        makeCellData(false) +
+                        '\n' +
+                        '  </tr>\n';
+
+                // Row 4: TIPE & Cell 2
+                html += '  <tr style="background-color: #fff; font-size: 16px; text-align: center;">\n' +
                         '    <td rowspan="2" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; text-align: center;">TIPE</td>\n' +
                         '    <td rowspan="2" style="padding: 2px; border: 1.5px solid #000; text-align: center; font-size: 16px;">' +
                         tipe +
                         '</td>\n' +
                         '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">2</td>\n' +
-                        getCellData(2) +
+                        makeCellData(true) +
                         '\n' +
-                        '  </tr>\n' +
+                        '    <td rowspan="2" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; text-align: center;">TIPE</td>\n' +
+                        '    <td rowspan="2" style="padding: 2px; border: 1.5px solid #000; text-align: center; font-size: 16px;">' +
+                        tipe +
+                        '</td>\n' +
+                        '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">2</td>\n' +
+                        makeCellData(false) +
+                        '\n' +
+                        '  </tr>\n';
+
+                // Row 5: Cell 3
+                html +=
                         '  <tr style="background-color: #fff; font-size: 16px; text-align: center;">\n' +
                         '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">3</td>\n' +
-                        getCellData(3) +
+                        makeCellData(true) +
                         '\n' +
-                        '  </tr>\n' +
+                        '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">3</td>\n' +
+                        makeCellData(false) +
+                        '\n' +
+                        '  </tr>\n';
+
+                // Row 6: KAPASITAS & Cell 4
+                html +=
                         '  <tr style="background-color: #fff; font-size: 16px; text-align: center;">\n' +
                         '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; text-align: center;">KAPASITAS</td>\n' +
                         '    <td style="padding: 2px; border: 1.5px solid #000; text-align: center; font-size: 16px;">' +
                         kapasitas +
                         '</td>\n' +
                         '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">4</td>\n' +
-                        getCellData(4) +
+                        makeCellData(true) +
                         '\n' +
-                        '  </tr>\n' +
+                        '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; text-align: center;">KAPASITAS</td>\n' +
+                        '    <td style="padding: 2px; border: 1.5px solid #000; text-align: center; font-size: 16px;">' +
+                        kapasitas +
+                        '</td>\n' +
+                        '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">4</td>\n' +
+                        makeCellData(false) +
+                        '\n' +
+                        '  </tr>\n';
+
+                // Row 7: KONDISI & V Total
+                html +=
                         '  <tr style="background-color: #fff; font-size: 16px; text-align: center;">\n' +
                         '    <td rowspan="2" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; text-align: center;">KONDISI<br/>BATERAI</td>\n' +
                         '    <td rowspan="2" style="padding: 2px; border: 1.5px solid #000; text-align: center; font-size: 16px;">' +
@@ -326,23 +395,38 @@ var generatePdfHtml = function (
                         '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; text-align: center;">' +
                         vTotal +
                         '</td>\n' +
-                        empty13 +
+                        makeEmpty13(true) +
                         '\n' +
-                        '  </tr>\n' +
-                        '  <tr style="background-color: #fff; font-size: 16px; text-align: center;">\n' +
+                        '    <td rowspan="2" style="padding: 2px; border: 1.5px solid #000; font-size: 16px; text-align: center;">KONDISI<br/>BATERAI</td>\n' +
+                        '    <td rowspan="2" style="padding: 2px; border: 1.5px solid #000; text-align: center; font-size: 16px;">' +
+                        kondisi +
+                        '</td>\n' +
+                        '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">V Total</td>\n' +
+                        '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; text-align: center;">' +
+                        vTotal +
+                        '</td>\n' +
+                        makeEmpty13(false) +
+                        '\n' +
+                        '  </tr>\n';
+
+                // Row 8: I Load
+                html += '  <tr style="background-color: #fff; font-size: 16px; text-align: center;">\n' +
                         '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">I Load</td>\n' +
                         '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; text-align: center;">' +
                         iLoad +
                         '</td>\n' +
-                        empty13 +
+                        makeEmpty13(true) +
+                        '\n' +
+                        '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; font-weight: bold; text-align: center;">I Load</td>\n' +
+                        '    <td style="padding: 2px; border: 1.5px solid #000; font-size: 16px; text-align: center;">' +
+                        iLoad +
+                        '</td>\n' +
+                        makeEmpty13(false) +
                         '\n' +
                         '  </tr>\n';
 
                 return html;
         };
-
-        var spacerRow =
-                '<tr><td colspan="17" style="height: 8px; background-color: #fff; border-left: none; border-right: none; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;"></td></tr>\n';
 
         /* =========================================================================
          * DOKUMENTASI TABEL: UJI KAPASITAS BATERAI
@@ -353,32 +437,17 @@ var generatePdfHtml = function (
          * Data     : batteryDischarge (Rectifier #1), batteryDischarge2 (Rectifier #2)
          * ========================================================================= */
         var ujiKapasitasBateraiHtml =
-                '<table style="width: 99%; border-collapse: collapse; border: 3px solid #000; text-align: center; line-height: 1.1; margin-top: 8px; font-size: 16px;">\n' +
+                '<table style="width: 99%; border-collapse: collapse; border: 2px solid #000; text-align: center; line-height: 1.1; margin-top: 8px; font-size: 16px;">\n' +
                 '  <tr style="font-size: 16px;">\n' +
-                '    <td colspan="2" style="background-color: red; color: white; text-align: center; font-weight: bold; border-bottom: 1.5px solid #000; padding: 3px; font-size: 18px;">TABEL UJI KAPASITAS BATERAI</td>\n' +
+                '  <td colspan="34" style="background-color: red; color: white; text-align: center; font-weight: bold; border-bottom: 1.5px solid #000; padding: 3px; font-size: 18px;">TABEL UJI KAPASITAS BATERAI</td>\n' +
                 '  </tr>\n' +
                 '  <tr style="font-size: 16px;">\n' +
-                '    <td width="50%" style="vertical-align: top; padding: 0; border-right: 3px solid #000; font-size: 16px;">\n' +
-                '      <table style="width: 100%; border-collapse: collapse; border: none; font-size: 16px;">\n' +
-                '        <tr style="font-size: 16px;"><td colspan="17" style="background-color: red; color: white; font-weight: bold; text-align: center; padding: 2px; border-bottom: 1.5px solid #000; font-size: 17px;">RECTIFIER #1</td></tr>\n' +
-                renderBankUjiKapasitas(0, 1) +
-                spacerRow +
-                renderBankUjiKapasitas(0, 2) +
-                spacerRow +
-                renderBankUjiKapasitas(0, 3) +
-                '      </table>\n' +
-                '    </td>\n' +
-                '    <td width="50%" style="vertical-align: top; padding: 0; font-size: 16px;">\n' +
-                '      <table style="width: 100%; border-collapse: collapse; border: none; font-size: 16px;">\n' +
-                '        <tr style="font-size: 16px;"><td colspan="17" style="background-color: red; color: white; font-weight: bold; text-align: center; padding: 2px; border-bottom: 1.5px solid #000; font-size: 17px;">RECTIFIER #2</td></tr>\n' +
-                renderBankUjiKapasitas(1, 1) +
-                spacerRow +
-                renderBankUjiKapasitas(1, 2) +
-                spacerRow +
-                renderBankUjiKapasitas(1, 3) +
-                '      </table>\n' +
-                '    </td>\n' +
+                '    <td colspan="17" style="background-color: red; color: white; font-weight: bold; text-align: center; padding: 2px; border-bottom: 1.5px solid #000; border-right: 3px solid #000; font-size: 17px;">RECTIFIER #1</td>\n' +
+                '    <td colspan="17" style="background-color: red; color: white; font-weight: bold; text-align: center; padding: 2px; border-bottom: 1.5px solid #000; font-size: 17px;">RECTIFIER #2</td>\n' +
                 '  </tr>\n' +
+                renderBankUjiKapasitasCombined(1) +
+                renderBankUjiKapasitasCombined(2) +
+                renderBankUjiKapasitasCombined(3) +
                 '</table>\n';
 
         /* =========================================================================
@@ -456,8 +525,8 @@ var generatePdfHtml = function (
                 '  </tr>\n' +
                 '  \n' +
                 '  <tr style="height: 1px;">\n' +
-                '    <td height="200px" style="border-right: 2px solid #000; vertical-align: bottom; text-align: center; padding-bottom: 10px; font-weight: bold;">(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</td>\n' +
-                '    <td height="200px" style="vertical-align: bottom; text-align: center; padding-bottom: 10px; font-weight: bold;">(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</td>\n' +
+                '    <td height="200px" style="border-right: 2px solid #000; vertical-align: bottom; text-align: center; padding-bottom: 10px; font-weight: bold;"></td>\n' +
+                '    <td height="200px" style="vertical-align: bottom; text-align: center; padding-bottom: 10px; font-weight: bold;"></td>\n' +
                 '  </tr>\n' +
                 '</table>\n';
 
@@ -703,24 +772,24 @@ var generatePdfHtml = function (
                                         '<div style="position: relative; width: 100%; text-align: center;">' +
                                         (!isCloudPhoto(item.uri)
                                                 ? '<div style="position: absolute; top: 2px; left: 2px; background: rgba(0,0,0,0.65); color: #ffffff; padding: 1px 4px; border-radius: 2px; font-size: 6px; font-weight: bold; font-family: monospace, sans-serif; text-shadow: 0.5px 0.5px 1px #000; text-align: left; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
-                                                  item.label +
-                                                  '</div>'
+                                                item.label +
+                                                '</div>'
                                                 : '') +
                                         '<img src="' +
                                         formatImgUri(item.uri) +
                                         '" style="width: 100%; height: auto; display: block;" />' +
                                         (!isCloudPhoto(item.uri)
                                                 ? '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: transparent; color: #ffffff; padding: 0; font-size: 5px; line-height: 1.1; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000, -0.5px -0.5px 1px #000;">' +
-                                                  '<div style="color: #ffffff; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Tgl/Jam : ' +
-                                                  getPhotoTs(item.uri) +
-                                                  '</div>' +
-                                                  '<div style="color: #ffffff; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Koordinat : ' +
-                                                  getPhotoCoord(item.uri) +
-                                                  '</div>' +
-                                                  '<div style="color: #ffffff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">Alamat : ' +
-                                                  popAddress +
-                                                  '</div>' +
-                                                  '</div>'
+                                                '<div style="color: #ffffff; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Tgl/Jam : ' +
+                                                getPhotoTs(item.uri) +
+                                                '</div>' +
+                                                '<div style="color: #ffffff; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Koordinat : ' +
+                                                getPhotoCoord(item.uri) +
+                                                '</div>' +
+                                                '<div style="color: #ffffff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">Alamat : ' +
+                                                popAddress +
+                                                '</div>' +
+                                                '</div>'
                                                 : '') +
                                         '</div>' +
                                         '</div>'
@@ -1982,7 +2051,7 @@ var generatePdfHtml = function (
                  * Data     : bebanAcpdbRows (acpdb.bebanR, bebanS, bebanT)
                  * --------------------------------------------------------- */
                 '                          <!-- DOKUMENTASI: TABEL BEBAN ACPDB -->\n' +
-                '                          <table style="width: 99%; border-collapse: collapse; border: 2px solid #000; position: relative; top:-45px; margin-bottom:-20px;">\n' +
+                '                          <table style="width: 98%; border-collapse: collapse; border: 2px solid #000; position: relative; top:-45px; margin-bottom:-20px;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td colspan="10" style="padding: 2px; border: 1.5px solid #000;">BEBAN ACPDB</td>\n' +
                 '                            </tr>\n' +
@@ -2048,7 +2117,7 @@ var generatePdfHtml = function (
                  * Data     : bebanDcpdbRows (dcpdb.bebanR, bebanS, bebanT)
                  * --------------------------------------------------------- */
                 '                          <!-- DOKUMENTASI: TABEL BEBAN DCPDB -->\n' +
-                '                          <table style="width: 99%; border-collapse: collapse; border: 2px solid #000;">\n' +
+                '                          <table style="width: 98%; border-collapse: collapse; border: 2px solid #000;">\n' +
                 '                            <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
                 '                              <td colspan="10" style="padding: 2px; border: 1.5px solid #000;">BEBAN DCPDB</td>\n' +
                 '                            </tr>\n' +
@@ -2567,8 +2636,8 @@ var generatePdfHtml = function (
                 '            <td colspan="3" style="padding: 5px;">PENANGGUNG JAWAB</td>\n' +
                 '          </tr>\n' +
                 '          <tr>\n' +
-                '            <td colspan="3" style="height: 80px; vertical-align: bottom; text-align: center; font-weight: bold; padding: 10px;">(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</td>\n' +
-                '            <td colspan="3" style="height: 80px; vertical-align: bottom; text-align: center; font-weight: bold; padding: 10px;">(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</td>\n' +
+                '            <td colspan="3" style="height: 80px; vertical-align: bottom; text-align: center; font-weight: bold; padding: 10px;"></td>\n' +
+                '            <td colspan="3" style="height: 80px; vertical-align: bottom; text-align: center; font-weight: bold; padding: 10px;"></td>\n' +
                 '          </tr>\n' +
                 '        </table>\n' +
                 '        </div>\n' +
@@ -3496,8 +3565,8 @@ var generatePdfHtml = function (
                         '                  <td style="width: 50%; padding: 3px; border: 1px solid #000;">PENANGGUNG JAWAB</td>\n' +
                         '                </tr>\n' +
                         '                <tr>\n' +
-                        '                  <td style="height: 55px; vertical-align: bottom; text-align: center; font-weight: bold; padding: 3px; border: 1px solid #000;">(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</td>\n' +
-                        '                  <td style="height: 55px; vertical-align: bottom; text-align: center; font-weight: bold; padding: 3px; border: 1px solid #000;">(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</td>\n' +
+                        '                  <td style="height: 55px; vertical-align: bottom; text-align: center; font-weight: bold; padding: 3px; border: 1px solid #000;"></td>\n' +
+                        '                  <td style="height: 55px; vertical-align: bottom; text-align: center; font-weight: bold; padding: 3px; border: 1px solid #000;"></td>\n' +
                         '                </tr>\n' +
                         '              </table>\n' +
                         '            </td>\n' +
@@ -4308,24 +4377,24 @@ var generatePdfHtml = function (
                                                 '<div style="position: relative; width: 100%; text-align: center;">' +
                                                 (!isCloudPhoto(uri)
                                                         ? '<div style="position: absolute; top: 3px; left: 3px; background: rgba(0,0,0,0.65); color: #ffffff; padding: 1.5px 5px; border-radius: 2px; font-size: 7.5px; font-weight: bold; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
-                                                          catLabel +
-                                                          '</div>'
+                                                        catLabel +
+                                                        '</div>'
                                                         : '') +
                                                 '<img src="' +
                                                 uri +
                                                 '" style="width: 100%; height: auto; display: block;" />' +
                                                 (!isCloudPhoto(uri)
                                                         ? '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: transparent; color: #ffffff; padding: 0; font-size: 6px; line-height: 1.15; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000, -0.5px -0.5px 1px #000;">' +
-                                                          '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
-                                                          getPhotoTs(uri) +
-                                                          '</div>' +
-                                                          '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
-                                                          getPhotoCoord(uri) +
-                                                          '</div>' +
-                                                          '<div style="color: #ffffff;">Alamat : ' +
-                                                          popAddress +
-                                                          '</div>' +
-                                                          '</div>'
+                                                        '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
+                                                        getPhotoTs(uri) +
+                                                        '</div>' +
+                                                        '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
+                                                        getPhotoCoord(uri) +
+                                                        '</div>' +
+                                                        '<div style="color: #ffffff;">Alamat : ' +
+                                                        popAddress +
+                                                        '</div>' +
+                                                        '</div>'
                                                         : '') +
                                                 '</div></div>'
                                         );
@@ -4527,24 +4596,24 @@ var generatePdfHtml = function (
                                                         '<div style="position: relative; width: 100%; text-align: center;">' +
                                                         (!isCloudPhoto(uri)
                                                                 ? '<div style="position: absolute; top: 3px; left: 3px; background: rgba(0,0,0,0.65); color: #ffffff; padding: 1.5px 5px; border-radius: 2px; font-size: 7.5px; font-weight: bold; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
-                                                                  catLabel +
-                                                                  '</div>'
+                                                                catLabel +
+                                                                '</div>'
                                                                 : '') +
                                                         '<img src="' +
                                                         uri +
                                                         '" style="width: 100%; height: auto; display: block;" />' +
                                                         (!isCloudPhoto(uri)
                                                                 ? '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: transparent; color: #ffffff; padding: 0; font-size: 6px; line-height: 1.15; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000, -0.5px -0.5px 1px #000;">' +
-                                                                  '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
-                                                                  getPhotoTs(uri) +
-                                                                  '</div>' +
-                                                                  '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
-                                                                  getPhotoCoord(uri) +
-                                                                  '</div>' +
-                                                                  '<div style="color: #ffffff;">Alamat : ' +
-                                                                  popAddress +
-                                                                  '</div>' +
-                                                                  '</div>'
+                                                                '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
+                                                                getPhotoTs(uri) +
+                                                                '</div>' +
+                                                                '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
+                                                                getPhotoCoord(uri) +
+                                                                '</div>' +
+                                                                '<div style="color: #ffffff;">Alamat : ' +
+                                                                popAddress +
+                                                                '</div>' +
+                                                                '</div>'
                                                                 : '') +
                                                         '</div></div>'
                                                 );
@@ -4745,24 +4814,24 @@ var generatePdfHtml = function (
                                                         '<div style="position: relative; width: 100%; text-align: center;">' +
                                                         (!isCloudPhoto(uri)
                                                                 ? '<div style="position: absolute; top: 3px; left: 3px; background: rgba(0,0,0,0.65); color: #ffffff; padding: 1.5px 5px; border-radius: 2px; font-size: 7.5px; font-weight: bold; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
-                                                                  catLabel +
-                                                                  '</div>'
+                                                                catLabel +
+                                                                '</div>'
                                                                 : '') +
                                                         '<img src="' +
                                                         uri +
                                                         '" style="width: 100%; height: auto; display: block;" />' +
                                                         (!isCloudPhoto(uri)
                                                                 ? '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: transparent; color: #ffffff; padding: 0; font-size: 6px; line-height: 1.15; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000, -0.5px -0.5px 1px #000;">' +
-                                                                  '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
-                                                                  getPhotoTs(uri) +
-                                                                  '</div>' +
-                                                                  '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
-                                                                  getPhotoCoord(uri) +
-                                                                  '</div>' +
-                                                                  '<div style="color: #ffffff;">Alamat : ' +
-                                                                  popAddress +
-                                                                  '</div>' +
-                                                                  '</div>'
+                                                                '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
+                                                                getPhotoTs(uri) +
+                                                                '</div>' +
+                                                                '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
+                                                                getPhotoCoord(uri) +
+                                                                '</div>' +
+                                                                '<div style="color: #ffffff;">Alamat : ' +
+                                                                popAddress +
+                                                                '</div>' +
+                                                                '</div>'
                                                                 : '') +
                                                         '</div></div>'
                                                 );
@@ -5019,24 +5088,24 @@ var generatePdfHtml = function (
                                                         '<div style="position: relative; width: 100%; text-align: center;">' +
                                                         (!isCloudPhoto(uri)
                                                                 ? '<div style="position: absolute; top: 3px; left: 3px; background: rgba(0,0,0,0.65); color: #ffffff; padding: 1.5px 5px; border-radius: 2px; font-size: 7.5px; font-weight: bold; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
-                                                                  catLabel +
-                                                                  '</div>'
+                                                                catLabel +
+                                                                '</div>'
                                                                 : '') +
                                                         '<img src="' +
                                                         uri +
                                                         '" style="width: 100%; height: auto; display: block;" />' +
                                                         (!isCloudPhoto(uri)
                                                                 ? '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: transparent; color: #ffffff; padding: 0; font-size: 6px; line-height: 1.15; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000, -0.5px -0.5px 1px #000;">' +
-                                                                  '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
-                                                                  getPhotoTs(uri) +
-                                                                  '</div>' +
-                                                                  '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
-                                                                  getPhotoCoord(uri) +
-                                                                  '</div>' +
-                                                                  '<div style="color: #ffffff;">Alamat : ' +
-                                                                  popAddress +
-                                                                  '</div>' +
-                                                                  '</div>'
+                                                                '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
+                                                                getPhotoTs(uri) +
+                                                                '</div>' +
+                                                                '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
+                                                                getPhotoCoord(uri) +
+                                                                '</div>' +
+                                                                '<div style="color: #ffffff;">Alamat : ' +
+                                                                popAddress +
+                                                                '</div>' +
+                                                                '</div>'
                                                                 : '') +
                                                         '</div></div>'
                                                 );
@@ -5242,24 +5311,24 @@ var generatePdfHtml = function (
                                         '<div style="position: relative; width: 100%; text-align: center;">' +
                                         (!isCloudPhoto(uri)
                                                 ? '<div style="position: absolute; top: 3px; left: 3px; background: rgba(0,0,0,0.65); color: #ffffff; padding: 1.5px 5px; border-radius: 2px; font-size: 7.5px; font-weight: bold; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
-                                                  catLabel +
-                                                  '</div>'
+                                                catLabel +
+                                                '</div>'
                                                 : '') +
                                         '<img src="' +
                                         uri +
                                         '" style="width: 100%; height: auto; display: block;" />' +
                                         (!isCloudPhoto(uri)
                                                 ? '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: transparent; color: #ffffff; padding: 0; font-size: 6px; line-height: 1.15; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000, -0.5px -0.5px 1px #000;">' +
-                                                  '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
-                                                  getPhotoTs(uri) +
-                                                  '</div>' +
-                                                  '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
-                                                  getPhotoCoord(uri) +
-                                                  '</div>' +
-                                                  '<div style="color: #ffffff;">Alamat : ' +
-                                                  popAddress +
-                                                  '</div>' +
-                                                  '</div>'
+                                                '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
+                                                getPhotoTs(uri) +
+                                                '</div>' +
+                                                '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
+                                                getPhotoCoord(uri) +
+                                                '</div>' +
+                                                '<div style="color: #ffffff;">Alamat : ' +
+                                                popAddress +
+                                                '</div>' +
+                                                '</div>'
                                                 : '') +
                                         '</div></div>'
                                 );
