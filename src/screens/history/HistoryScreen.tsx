@@ -14,6 +14,7 @@ import {
   TextInput,
   SectionList,
   StatusBar,
+  Image,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -525,41 +526,43 @@ export const HistoryScreen: React.FC = () => {
         />
 
         {/* ─── Header ─── */}
-        <Animated.View
-          style={[
-            styles.headerContainer,
-            {
-              opacity: headerAnim,
-              transform: [
-                {
-                  translateY: headerAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [-30, 0],
-                  }),
-                },
-              ],
-            },
-          ]}
+        <LinearGradient
+          colors={['rgba(11, 21, 42, 0.75)', 'rgba(7, 13, 29, 0.1)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.headerGradient}
         >
-          <LinearGradient
-            colors={['rgba(11, 21, 42, 0.8)', 'rgba(7, 13, 29, 0.2)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={styles.headerGradient}
+          <Animated.View
+            style={[
+              styles.headerTitleRow,
+              {
+                opacity: headerAnim,
+                transform: [
+                  {
+                    translateY: headerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-20, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
           >
-          {/* Title row */}
-          <View style={styles.headerTitleRow}>
             <View>
-              <Text style={styles.headerOverline}>RIWAYAT</Text>
-              <Text style={styles.headerTitle}>Laporan</Text>
+              <Image
+                source={require('../../assets/images/pln_icon_plus_white.png')}
+                style={styles.headerLogo}
+                resizeMode="contain"
+              />
+              <Text style={styles.headerOverline}>PREVENTIVE MAINTENANCE</Text>
+              <Text style={styles.headerTitle}>Riwayat Laporan</Text>
             </View>
             <View style={styles.headerBadge}>
               <TrendingUp size={16} color={Colors.primary} />
               <Text style={styles.headerBadgeText}>{stats.total}</Text>
             </View>
-          </View>
+          </Animated.View>
         </LinearGradient>
-      </Animated.View>
 
       {/* ─── Search Bar ─── */}
       <Animated.View
@@ -640,12 +643,18 @@ const styles = StyleSheet.create({
     paddingTop: 56,
     paddingBottom: Spacing.lg,
     paddingHorizontal: Spacing.lg,
+    overflow: 'hidden',
   },
   headerTitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.lg,
+    alignItems: 'flex-end',
+  },
+  headerLogo: {
+    width: 140,
+    height: 42,
+    marginBottom: Spacing.sm,
+    resizeMode: 'contain',
   },
   headerOverline: {
     ...Typography.overline,
@@ -668,6 +677,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.2)',
     gap: 6,
+    marginBottom: 4,
   },
   headerBadgeText: {
     ...Typography.label,

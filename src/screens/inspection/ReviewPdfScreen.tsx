@@ -136,14 +136,21 @@ export const ReviewPdfScreen: React.FC = () => {
     );
   }, [currentSection]);
 
+  useEffect(() => {
+    setGeneratedPdfPath('');
+    setGeneratedPdfFileName('');
+  }, [downloadableHtml]);
+
   /**
    * Helper untuk membuat atau mengambil file PDF lokal di HP
    */
-  const getOrGenerateLocalPdf = async (): Promise<{
+  const getOrGenerateLocalPdf = async (
+    forceFresh = false,
+  ): Promise<{
     pdfPath: string;
     pdfFileName: string;
   }> => {
-    if (generatedPdfPath && generatedPdfFileName) {
+    if (!forceFresh && generatedPdfPath && generatedPdfFileName) {
       return { pdfPath: generatedPdfPath, pdfFileName: generatedPdfFileName };
     }
 
@@ -153,9 +160,13 @@ export const ReviewPdfScreen: React.FC = () => {
     )
       .toString()
       .padStart(2, '0')}-${now.getFullYear()}`;
+    const timeStr = `${now.getHours().toString().padStart(2, '0')}${now
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
     const cleanId = cleanPopId(activePopId || '') || 'POP';
     const safePopId = cleanId.replace(/[^a-zA-Z0-9_-]/g, '_');
-    const pdfFileName = `PM_Report_${safePopId}_${dateStr}`;
+    const pdfFileName = `PM_Report_${safePopId}_${dateStr}_${timeStr}`;
 
     const options = {
       html: downloadableHtml,
@@ -363,7 +374,7 @@ export const ReviewPdfScreen: React.FC = () => {
   const handleDownloadPdfOnly = async () => {
     setDownloading(true);
     try {
-      const { pdfPath, pdfFileName } = await getOrGenerateLocalPdf();
+      const { pdfPath, pdfFileName } = await getOrGenerateLocalPdf(true);
 
       if (pdfPath && Platform.OS === 'android' && NativeModules.PdfDownloader) {
         try {

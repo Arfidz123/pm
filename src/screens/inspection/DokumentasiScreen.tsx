@@ -58,6 +58,7 @@ import {
   getLiveCoordinatesString,
   getCurrentFormattedTimestamp,
 } from '../../utils/helpers';
+import { stampPhotoWithMetadata } from '../../services/imageStampService';
 import type { RootStackParamList } from '../../types';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -266,7 +267,20 @@ export const DokumentasiScreen: React.FC = () => {
           if (uri) {
             const liveCoords = await getLiveCoordinatesString();
             const photoTs = getCurrentFormattedTimestamp();
-            addPhoto(uri, photoTs, liveCoords || undefined);
+            const effectiveCoords = liveCoords || coordsStr;
+            const effectiveAddr = addressStr;
+
+            let finalUri = uri;
+            try {
+              finalUri = await stampPhotoWithMetadata(uri, {
+                timestamp: photoTs,
+                coordinates: effectiveCoords || undefined,
+                address: effectiveAddr || undefined,
+              });
+            } catch (stampErr) {
+              console.warn('Gagal stamp foto dokumentasi kamera:', stampErr);
+            }
+            addPhoto(finalUri, photoTs, effectiveCoords || undefined);
           }
         }
       },
@@ -286,11 +300,24 @@ export const DokumentasiScreen: React.FC = () => {
         if (response.assets && response.assets.length > 0) {
           const liveCoords = await getLiveCoordinatesString();
           const photoTs = getCurrentFormattedTimestamp();
-          response.assets.forEach(asset => {
+          const effectiveCoords = liveCoords || coordsStr;
+          const effectiveAddr = addressStr;
+
+          for (const asset of response.assets) {
             if (asset.uri) {
-              addPhoto(asset.uri, photoTs, liveCoords || undefined);
+              let finalUri = asset.uri;
+              try {
+                finalUri = await stampPhotoWithMetadata(asset.uri, {
+                  timestamp: photoTs,
+                  coordinates: effectiveCoords || undefined,
+                  address: effectiveAddr || undefined,
+                });
+              } catch (stampErr) {
+                console.warn('Gagal stamp foto galeri dokumentasi:', stampErr);
+              }
+              addPhoto(finalUri, photoTs, effectiveCoords || undefined);
             }
-          });
+          }
         }
       },
     );

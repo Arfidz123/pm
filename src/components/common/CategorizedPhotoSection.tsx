@@ -31,6 +31,7 @@ import {
   getLiveCoordinatesString,
   getCurrentFormattedTimestamp,
 } from '../../utils/helpers';
+import { stampPhotoWithMetadata } from '../../services/imageStampService';
 
 export interface PhotoCategoryConfig {
   key: string;
@@ -294,13 +295,27 @@ export const CategorizedPhotoSection: React.FC<
             try {
               const liveCoords = await getLiveCoordinatesString();
               const photoTs = getCurrentFormattedTimestamp();
+              const effectiveCoords = liveCoords || coordsStr;
+              const effectiveAddr = addressStr;
+
+              let finalUri = uri;
+              try {
+                finalUri = await stampPhotoWithMetadata(uri, {
+                  timestamp: photoTs,
+                  coordinates: effectiveCoords || undefined,
+                  address: effectiveAddr || undefined,
+                });
+              } catch (stampErr) {
+                console.warn('Gagal stamp foto kamera:', stampErr);
+              }
+
               addCategorizedPhoto(
                 sectionKey,
                 targetCatKey,
-                uri,
+                finalUri,
                 targetCatLabel,
                 photoTs,
-                liveCoords || undefined,
+                effectiveCoords || undefined,
               );
             } catch (err) {
               console.error('Error processing camera photo:', err);
@@ -344,18 +359,32 @@ export const CategorizedPhotoSection: React.FC<
           try {
             const liveCoords = await getLiveCoordinatesString();
             const photoTs = getCurrentFormattedTimestamp();
-            response.assets.forEach(asset => {
+            const effectiveCoords = liveCoords || coordsStr;
+            const effectiveAddr = addressStr;
+
+            for (const asset of response.assets) {
               if (asset.uri) {
+                let finalUri = asset.uri;
+                try {
+                  finalUri = await stampPhotoWithMetadata(asset.uri, {
+                    timestamp: photoTs,
+                    coordinates: effectiveCoords || undefined,
+                    address: effectiveAddr || undefined,
+                  });
+                } catch (stampErr) {
+                  console.warn('Gagal stamp foto galeri:', stampErr);
+                }
+
                 addCategorizedPhoto(
                   sectionKey,
                   targetCatKey,
-                  asset.uri,
+                  finalUri,
                   targetCatLabel,
                   photoTs,
-                  liveCoords || undefined,
+                  effectiveCoords || undefined,
                 );
               }
-            });
+            }
           } catch (err) {
             console.error('Error processing gallery photo:', err);
           } finally {

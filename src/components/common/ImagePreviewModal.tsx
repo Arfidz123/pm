@@ -36,6 +36,7 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     currentLocation,
     formData,
     getPhotoTimestamp,
+    getPhotoCoordinates,
   } = useInspectionStore();
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
@@ -72,16 +73,26 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
 
   const infoPop = formData.infoPop || {};
   const coordsStr =
+    (imageUri ? getPhotoCoordinates(imageUri) : '') ||
     infoPop.koordinat ||
     (currentLocation
       ? `${currentLocation.lat.toFixed(5)}, ${currentLocation.lng.toFixed(5)}`
       : '');
   const addressStr =
-    currentLocation?.address ||
-    (infoPop.alamat && infoPop.alamat !== 'Kendari' ? infoPop.alamat : null) ||
-    activePopLocation ||
-    '';
+    infoPop.alamat && infoPop.alamat.trim() !== ''
+      ? infoPop.alamat.trim()
+      : activePopLocation || currentLocation?.address || '-';
   const dateStr = imageUri ? getPhotoTimestamp(imageUri) : '';
+
+  const isStampedOrCloudPhoto = Boolean(
+    imageUri?.startsWith('telegram://') ||
+    imageUri?.startsWith('http://') ||
+    imageUri?.startsWith('https://') ||
+    imageUri?.includes('stamp_') ||
+    displayUri?.startsWith('http://') ||
+    displayUri?.startsWith('https://') ||
+    displayUri?.includes('stamp_'),
+  );
 
   return (
     <Modal
@@ -106,9 +117,10 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
               style={styles.image}
               resizeMode="cover"
             />
-            {/* Watermark overlay directly inside the photo */}
-            <View style={styles.watermarkOverlay}>
-                <Text style={styles.watermarkText}>Tgl/Jam: {dateStr}</Text>
+            {/* Watermark overlay directly inside the photo - only if not already stamped */}
+            {!isStampedOrCloudPhoto && (
+              <View style={styles.watermarkOverlay}>
+                <Text style={styles.watermarkText}>Tgl/Jam: {dateStr || 'Sesuai Jadwal PM'}</Text>
                 <Text style={styles.watermarkTextSub}>
                   Koordinat: {coordsStr || 'Mendapatkan GPS...'}
                 </Text>
@@ -116,6 +128,7 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                   Alamat: {addressStr || '-'}
                 </Text>
               </View>
+            )}
           </View>
         </View>
       </SafeAreaView>

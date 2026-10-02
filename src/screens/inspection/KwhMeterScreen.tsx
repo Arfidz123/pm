@@ -38,6 +38,7 @@ import {
   getLiveCoordinatesString,
   getCurrentFormattedTimestamp,
 } from '../../utils/helpers';
+import { stampPhotoWithMetadata } from '../../services/imageStampService';
 import type { RootStackParamList } from '../../types';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -161,11 +162,25 @@ export const KwhMeterScreen: React.FC = () => {
           if (uri) {
             const liveCoords = await getLiveCoordinatesString();
             const photoTs = getCurrentFormattedTimestamp();
+            const effectiveCoords = liveCoords || coordsStr;
+            const effectiveAddr = addressStr;
+
+            let finalUri = uri;
+            try {
+              finalUri = await stampPhotoWithMetadata(uri, {
+                timestamp: photoTs,
+                coordinates: effectiveCoords || undefined,
+                address: effectiveAddr || undefined,
+              });
+            } catch (stampErr) {
+              console.warn('Gagal stamp foto kwh kamera:', stampErr);
+            }
+
             addPhotoBySection(
               'kwhMeter',
-              uri,
+              finalUri,
               photoTs,
-              liveCoords || undefined,
+              effectiveCoords || undefined,
             );
           }
         }
@@ -193,16 +208,31 @@ export const KwhMeterScreen: React.FC = () => {
           return;
         }
         if (response.assets && response.assets.length > 0) {
-          const uri = response.assets[0].uri;
-          if (uri) {
-            const liveCoords = await getLiveCoordinatesString();
-            const photoTs = getCurrentFormattedTimestamp();
-            addPhotoBySection(
-              'kwhMeter',
-              uri,
-              photoTs,
-              liveCoords || undefined,
-            );
+          const liveCoords = await getLiveCoordinatesString();
+          const photoTs = getCurrentFormattedTimestamp();
+          const effectiveCoords = liveCoords || coordsStr;
+          const effectiveAddr = addressStr;
+
+          for (const asset of response.assets) {
+            if (asset.uri) {
+              let finalUri = asset.uri;
+              try {
+                finalUri = await stampPhotoWithMetadata(asset.uri, {
+                  timestamp: photoTs,
+                  coordinates: effectiveCoords || undefined,
+                  address: effectiveAddr || undefined,
+                });
+              } catch (stampErr) {
+                console.warn('Gagal stamp foto kwh galeri:', stampErr);
+              }
+
+              addPhotoBySection(
+                'kwhMeter',
+                finalUri,
+                photoTs,
+                effectiveCoords || undefined,
+              );
+            }
           }
         }
       },

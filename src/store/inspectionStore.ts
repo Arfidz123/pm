@@ -111,13 +111,14 @@ interface InspectionState {
   saveDraftNow: () => Promise<boolean>;
 }
 
-const formatTimestamp = () => {
-  const now = new Date();
-  return `${now.toLocaleDateString('id-ID', {
+const formatTimestamp = (dateInput?: Date | string | null) => {
+  const now = dateInput ? new Date(dateInput) : new Date();
+  const safeDate = isNaN(now.getTime()) ? new Date() : now;
+  return `${safeDate.toLocaleDateString('id-ID', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
-  })} ${now.toLocaleTimeString('id-ID', {
+  })} ${safeDate.toLocaleTimeString('id-ID', {
     hour: '2-digit',
     minute: '2-digit',
   })} WITA`;
@@ -329,7 +330,16 @@ export const useInspectionStore = create<InspectionState>()((set, get) => ({
     if (state.photoTimestamps && state.photoTimestamps[path]) {
       return state.photoTimestamps[path];
     }
-    const ts = formatTimestamp();
+    if (
+      path.startsWith('telegram://') ||
+      path.startsWith('http://') ||
+      path.startsWith('https://')
+    ) {
+      if (state.formData.inspectionStartTime) {
+        return formatTimestamp(state.formData.inspectionStartTime);
+      }
+    }
+    const ts = formatTimestamp(state.formData.inspectionStartTime);
     const newTimestamps = { ...(state.photoTimestamps || {}), [path]: ts };
     set(s => ({
       photoTimestamps: newTimestamps,
@@ -766,6 +776,7 @@ export const useInspectionStore = create<InspectionState>()((set, get) => ({
         photoCategories: pCategories,
       },
     });
+    scheduleAutoSave(get);
   },
 
   resetInspection: () => {

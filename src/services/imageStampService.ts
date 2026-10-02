@@ -4,11 +4,10 @@ export interface PhotoStampOptions {
   timestamp?: string;
   coordinates?: string;
   address?: string;
-  label?: string;
 }
 
 /**
- * Membakar (burn-in) stempel waktu, koordinat, label, dan lokasi langsung ke dalam file foto
+ * Membakar (burn-in) stempel waktu, koordinat, dan lokasi langsung ke dalam file foto
  * menggunakan Android Native Canvas sebelum diunggah ke Telegram.
  * 
  * Menghasilkan file gambar JPEG baru di cache dengan badge stempel permanen.
@@ -21,11 +20,12 @@ export const stampPhotoWithMetadata = async (
 
   const cleanUri = uri.trim();
 
-  // Lewati jika sudah link cloud / URL online / telegram://
+  // Lewati jika sudah link cloud / URL online / telegram:// atau sudah dicap sebelumnya
   if (
     cleanUri.startsWith('http://') ||
     cleanUri.startsWith('https://') ||
-    cleanUri.startsWith('telegram://')
+    cleanUri.startsWith('telegram://') ||
+    cleanUri.includes('stamp_')
   ) {
     return cleanUri;
   }
@@ -34,8 +34,7 @@ export const stampPhotoWithMetadata = async (
   if (
     !options.timestamp &&
     !options.coordinates &&
-    !options.address &&
-    !options.label
+    !options.address
   ) {
     return cleanUri;
   }
@@ -49,7 +48,7 @@ export const stampPhotoWithMetadata = async (
           timestamp: options.timestamp || '',
           coordinates: options.coordinates || '',
           address: options.address || '',
-          label: options.label || '',
+          label: '',
         },
       );
       if (stampedPath && stampedPath.length > 0) {

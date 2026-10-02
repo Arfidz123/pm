@@ -142,7 +142,7 @@ export const saveInspectionDraft = async (
           insp.photos = JSON.stringify(photos || []);
           insp.notes = notes || '';
           insp.formData = JSON.stringify(draftPayload);
-          insp.isSynced = true; // Mark as true so background sync doesn't push incomplete drafts to cloud
+          insp.isSynced = false;
         });
       } else {
         await inspectionsCollection.create(insp => {
@@ -157,7 +157,7 @@ export const saveInspectionDraft = async (
           insp.signaturePath = '';
           insp.pdfPath = '';
           insp.formData = JSON.stringify(draftPayload);
-          insp.isSynced = true;
+          insp.isSynced = false;
         });
       }
     });
@@ -192,6 +192,7 @@ export const getInspectionDraft = async (): Promise<DraftInspectionData | null> 
         .query(Q.where('status', 'draft'))
         .fetch();
       if (drafts.length > 0) {
+        drafts.sort((a, b) => (b.inspectionDate || 0) - (a.inspectionDate || 0));
         draftRecord = drafts[0];
       }
     }

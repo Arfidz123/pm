@@ -336,9 +336,10 @@ export const RectifierScreen: React.FC = () => {
     newRectifiers.forEach(r => {
       const rectNum = r.id;
       const rectLabel = `Rectifier ${rectNum}`;
-      (r.mcbs || []).forEach(mcb => {
+      (r.mcbs || []).forEach((mcb, mIdx) => {
         allBebanRows.push({
-          mcb: (allBebanRows.length + 1).toString(),
+          mcb: (mIdx + 1).toString(),
+          id: (mIdx + 1).toString(),
           rectifier: rectLabel,
           merk: mcb.merk || '',
           kapasitas: mcb.kapasitas || '',

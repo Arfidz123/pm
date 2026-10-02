@@ -334,37 +334,30 @@ class PdfDownloaderModule(private val reactContext: ReactApplicationContext) :
                 if (!coordinates.isNullOrBlank()) lines.add("Koordinat: $coordinates")
                 if (!address.isNullOrBlank()) lines.add("Alamat: $address")
 
+                // Scale metrics proportionally to image resolution
+                val baseDimension = Math.min(width, height).toFloat()
+                val scale = Math.max(0.6f, baseDimension / 720f)
+                val margin = 16f * scale
+
+                // Draw Bottom-Left Timestamp, Coordinates, Address - exact Telegram size, position, and bold outline style
                 if (lines.isNotEmpty()) {
-                    // Scale metrics proportionally to image resolution
-                    val baseDimension = Math.min(width, height).toFloat()
-                    val scale = Math.max(0.6f, baseDimension / 720f)
+                    val fontSize = 15f * scale
+                    val lineSpacing = 4f * scale
 
-                    val fontSize = 16f * scale
-                    val paddingX = 14f * scale
-                    val paddingY = 12f * scale
-                    val cornerRadius = 10f * scale
-                    val margin = 16f * scale
-                    val lineSpacing = 6f * scale
-
-                    val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                        color = Color.WHITE
+                    val samplePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                         textSize = fontSize
                         typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
-                        setShadowLayer(3f * scale, 1.5f * scale, 1.5f * scale, Color.argb(220, 0, 0, 0))
                     }
-
-                    val fontMetrics = textPaint.fontMetrics
+                    val fontMetrics = samplePaint.fontMetrics
                     val lineHeight = fontMetrics.bottom - fontMetrics.top
 
-                    // Limit badge width to 90% of image width
-                    val maxBadgeWidth = width - (margin * 2)
-                    val maxTextWidthAllowed = maxBadgeWidth - (paddingX * 2)
+                    // Limit width to 95% of image width
+                    val maxTextWidthAllowed = width - (margin * 2)
 
-                    // Truncate long lines if exceeding image width
                     val processedLines = lines.map { line ->
                         var displayLine = line
-                        if (textPaint.measureText(displayLine) > maxTextWidthAllowed) {
-                            while (displayLine.length > 4 && textPaint.measureText("$displayLine...") > maxTextWidthAllowed) {
+                        if (samplePaint.measureText(displayLine) > maxTextWidthAllowed) {
+                            while (displayLine.length > 4 && samplePaint.measureText("$displayLine...") > maxTextWidthAllowed) {
                                 displayLine = displayLine.dropLast(1)
                             }
                             displayLine = "$displayLine..."
@@ -372,41 +365,35 @@ class PdfDownloaderModule(private val reactContext: ReactApplicationContext) :
                         displayLine
                     }
 
-                    var maxLineWidth = 0f
-                    for (line in processedLines) {
-                        val w = textPaint.measureText(line)
-                        if (w > maxLineWidth) maxLineWidth = w
-                    }
+                    val totalTextHeight = (processedLines.size * lineHeight) + ((processedLines.size - 1) * lineSpacing)
+                    val startY = height - margin - totalTextHeight
 
-                    val badgeWidth = Math.min(maxLineWidth + (paddingX * 2), maxBadgeWidth)
-                    val badgeHeight = (processedLines.size * lineHeight) + ((processedLines.size - 1) * lineSpacing) + (paddingY * 2)
-
-                    // Position at bottom-left
-                    val left = margin
-                    val bottom = height - margin
-                    val top = bottom - badgeHeight
-                    val right = left + badgeWidth
-
-                    // Draw semi-transparent dark rounded badge
-                    val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                        color = Color.argb(195, 15, 23, 42) // #0F172A ~76% opacity
-                        style = Paint.Style.FILL
-                    }
-                    val badgeRect = RectF(left, top, right, bottom)
-                    canvas.drawRoundRect(badgeRect, cornerRadius, cornerRadius, bgPaint)
-
-                    // Draw subtle border around badge
-                    val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                        color = Color.argb(70, 255, 255, 255)
+                    // Outline paint (Black stroke) to ensure crisp readability on any photo background
+                    val outlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        color = Color.BLACK
+                        textSize = fontSize
+                        typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
                         style = Paint.Style.STROKE
-                        strokeWidth = 1.5f * scale
+                        strokeWidth = 3.5f * scale
+                        strokeJoin = Paint.Join.ROUND
+                        strokeCap = Paint.Cap.ROUND
                     }
-                    canvas.drawRoundRect(badgeRect, cornerRadius, cornerRadius, strokePaint)
 
-                    // Draw lines
-                    var currentY = top + paddingY - fontMetrics.top
+                    // Fill paint (Pure White) with subtle shadow
+                    val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        color = Color.WHITE
+                        textSize = fontSize
+                        typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+                        style = Paint.Style.FILL
+                        setShadowLayer(3f * scale, 1.5f * scale, 1.5f * scale, Color.argb(220, 0, 0, 0))
+                    }
+
+                    var currentY = startY - fontMetrics.top
                     for (line in processedLines) {
-                        canvas.drawText(line, left + paddingX, currentY, textPaint)
+                        // Draw black outline first
+                        canvas.drawText(line, margin, currentY, outlinePaint)
+                        // Draw crisp white text on top
+                        canvas.drawText(line, margin, currentY, fillPaint)
                         currentY += lineHeight + lineSpacing
                     }
                 }

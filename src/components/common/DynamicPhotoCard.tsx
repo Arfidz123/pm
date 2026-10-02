@@ -33,10 +33,28 @@ export const DynamicPhotoCard: React.FC<DynamicPhotoCardProps> = ({
   addressStr,
   label,
 }) => {
-  const { getPhotoTimestamp } = useInspectionStore();
+  const {
+    getPhotoTimestamp,
+    getPhotoCoordinates,
+    formData,
+    activePopLocation,
+    currentLocation,
+  } = useInspectionStore();
   const [aspectRatio, setAspectRatio] = useState<number>(4 / 3);
   const [displayUri, setDisplayUri] = useState<string>(formatImageUri(uri));
   const displayDateStr = dateStr || (uri ? getPhotoTimestamp(uri) : '');
+  const displayCoordsStr =
+    coordsStr ||
+    (uri ? getPhotoCoordinates(uri) : '') ||
+    formData?.infoPop?.koordinat ||
+    (currentLocation
+      ? `${currentLocation.lat.toFixed(5)}, ${currentLocation.lng.toFixed(5)}`
+      : '');
+  const displayAddressStr =
+    addressStr ||
+    (formData?.infoPop?.alamat && formData.infoPop.alamat.trim() !== ''
+      ? formData.infoPop.alamat.trim()
+      : activePopLocation || currentLocation?.address || '-');
 
   useEffect(() => {
     let isMounted = true;
@@ -63,6 +81,16 @@ export const DynamicPhotoCard: React.FC<DynamicPhotoCardProps> = ({
     };
   }, [uri]);
 
+  const isStampedOrCloudPhoto = Boolean(
+    uri?.startsWith('telegram://') ||
+    uri?.startsWith('http://') ||
+    uri?.startsWith('https://') ||
+    uri?.includes('stamp_') ||
+    displayUri?.startsWith('http://') ||
+    displayUri?.startsWith('https://') ||
+    displayUri?.includes('stamp_'),
+  );
+
   return (
     <View style={styles.photoUploadBoxWrapper}>
       <TouchableOpacity
@@ -78,25 +106,25 @@ export const DynamicPhotoCard: React.FC<DynamicPhotoCardProps> = ({
             </Text>
           </View>
         ) : null}
-        {(displayDateStr || coordsStr || addressStr) && (
+        {!isStampedOrCloudPhoto && (displayDateStr || displayCoordsStr || displayAddressStr) ? (
           <View style={styles.timestampBadgeOverlay}>
             {displayDateStr ? (
               <Text style={styles.timestampOverlayText}>
                 Tgl/Jam: {displayDateStr}
               </Text>
             ) : null}
-            {coordsStr ? (
+            {displayCoordsStr ? (
               <Text style={styles.timestampOverlayTextSub} numberOfLines={1}>
-                Koordinat: {coordsStr}
+                Koordinat: {displayCoordsStr}
               </Text>
             ) : null}
-            {addressStr ? (
+            {displayAddressStr ? (
               <Text style={styles.timestampOverlayTextSub} numberOfLines={1}>
-                Alamat: {addressStr}
+                Alamat: {displayAddressStr}
               </Text>
             ) : null}
           </View>
-        )}
+        ) : null}
       </TouchableOpacity>
       {onDelete && (
         <TouchableOpacity style={styles.deletePhotoBtn} onPress={onDelete}>

@@ -64,6 +64,7 @@ export const StartInspectionScreen: React.FC = () => {
   const iconPulse = useRef(new Animated.Value(1)).current;
 
   const {
+    activePopId,
     setActivePop,
     setCurrentLocation,
     setChecklistEntries,
@@ -157,6 +158,14 @@ export const StartInspectionScreen: React.FC = () => {
 
   const applySelectedPop = async (selectedAsset: Asset) => {
     try {
+      if (activePopId === selectedAsset.assetCode) {
+        // Sesi POP ini sudah aktif, tidak perlu mereset isian form
+        setShowMultiPopModal(false);
+        setDetecting(false);
+        navigation.goBack();
+        return;
+      }
+
       setShowMultiPopModal(false);
       setDetecting(true);
       setLoadingMsg(`Menyiapkan data: ${cleanPopName(selectedAsset.name)}...`);

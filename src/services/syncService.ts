@@ -57,6 +57,147 @@ export const collectAllPhotoUrisFromObject = (obj: any): string[] => {
 };
 
 /**
+ * Resolves exact timestamp, coordinates, and address from the application when the photo was captured
+ */
+export const getPhotoMetadataForUri = (
+  uri: string,
+  formData: any,
+  defaultPopName?: string,
+): { timestamp: string; coordinates?: string; address?: string } => {
+  if (!uri || !formData) {
+    return { timestamp: '' };
+  }
+
+  const clean = uri.split('?')[0].trim();
+  const rawPath = clean.replace(/^file:\/\//, '');
+
+  const getFilename = (p: string) => {
+    if (!p) return '';
+    const withoutQuery = p.split('?')[0].trim();
+    const slashIdx = Math.max(
+      withoutQuery.lastIndexOf('/'),
+      withoutQuery.lastIndexOf('\\'),
+    );
+    return slashIdx >= 0 ? withoutQuery.substring(slashIdx + 1) : withoutQuery;
+  };
+
+  const targetFilename = getFilename(uri);
+
+  const pts = formData.photoTimestamps || {};
+  const pcs = formData.photoCoordinates || {};
+
+  // 1. Match from photoTimestamps by direct path or filename
+  let ts =
+    pts[uri] ||
+    pts[clean] ||
+    pts[rawPath] ||
+    pts[`file://${rawPath}`] ||
+    '';
+
+  if (!ts && targetFilename) {
+    for (const [k, v] of Object.entries(pts)) {
+      if (typeof v === 'string' && getFilename(k) === targetFilename) {
+        ts = v;
+        break;
+      }
+    }
+  }
+
+  let coords =
+    pcs[uri] ||
+    pcs[clean] ||
+    pcs[rawPath] ||
+    pcs[`file://${rawPath}`] ||
+    '';
+
+  if (!coords && targetFilename) {
+    for (const [k, v] of Object.entries(pcs)) {
+      if (typeof v === 'string' && getFilename(k) === targetFilename) {
+        coords = v;
+        break;
+      }
+    }
+  }
+
+  // 2. Match from categorizedPhotos across all inspection sections
+  const sections = [
+    'dokumentasi',
+    'kwhMeter',
+    'rectifier',
+    'battery',
+    'mechanicalElect',
+    'powerSystem',
+  ];
+
+  for (const sec of sections) {
+    const secData = formData[sec];
+    if (secData && Array.isArray(secData.categorizedPhotos)) {
+      const found = secData.categorizedPhotos.find((c: any) => {
+        if (!c || !c.uri) return false;
+        const cClean = c.uri.split('?')[0].trim();
+        const cRaw = cClean.replace(/^file:\/\//, '');
+        return (
+          c.uri === uri ||
+          cClean === clean ||
+          cRaw === rawPath ||
+          c.uri === clean ||
+          c.uri === rawPath ||
+          (targetFilename && getFilename(c.uri) === targetFilename)
+        );
+      });
+      if (found) {
+        if (!ts && (found.timestamp || found.dateStr)) {
+          ts = found.timestamp || found.dateStr;
+        }
+        if (!coords && found.coordinates) {
+          coords = found.coordinates;
+        }
+      }
+    }
+  }
+
+  // 3. Fallback for timestamp: inspectionStartTime (time inspection was started in app)
+  if (!ts && formData.inspectionStartTime) {
+    const d = new Date(formData.inspectionStartTime);
+    if (!isNaN(d.getTime())) {
+      ts = `${d.toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      })} ${d.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })} WITA`;
+    }
+  }
+
+  // 4. Fallback for coordinates
+  if (!coords) {
+    coords =
+      formData.infoPop?.koordinat ||
+      (formData.currentLocation
+        ? `${formData.currentLocation.lat?.toFixed(5)}, ${formData.currentLocation.lng?.toFixed(5)}`
+        : '');
+  }
+
+  // 5. Address: prioritize infoPop.alamat exactly like the app screens and preview modal
+  const address =
+    (formData.infoPop?.alamat && formData.infoPop?.alamat.trim() !== ''
+      ? formData.infoPop?.alamat.trim()
+      : null) ||
+    formData.activePopLocation ||
+    formData.currentLocation?.address ||
+    defaultPopName ||
+    '';
+
+  return {
+    timestamp: ts,
+    coordinates: coords || undefined,
+    address: address || undefined,
+  };
+};
+
+/**
  * Recursively replaces local photo URIs in an object with their mapped Telegram Cloud URIs
  */
 export const replacePhotoUrisInObject = <T>(
@@ -145,28 +286,25 @@ export const processInspectionMediaForCloud = async (data: {
 
   // 2. Upload photos to Telegram (batch upload with Telegram file_id URIs & burned-in timestamp)
   let photoUrlMap: Record<string, string> = {};
+  const metadataMap: Record<string, any> = {};
+
   if (allPhotoUris.length > 0) {
     try {
-      const photoTimestamps = data.formData?.photoTimestamps || {};
-      const photoCoordinates = data.formData?.photoCoordinates || {};
-      const photoCategories = data.formData?.photoCategories || {};
       const defaultPopName =
         data.popName || data.formData?.infoPop?.namaPop || '';
 
-      const metadataMap: Record<string, any> = {};
       allPhotoUris.forEach(uri => {
-        metadataMap[uri] = {
-          timestamp: photoTimestamps[uri] || getCurrentFormattedTimestamp(),
-          coordinates: photoCoordinates[uri] || '',
-          label: photoCategories[uri] || '',
-          address: defaultPopName,
-        };
+        metadataMap[uri] = getPhotoMetadataForUri(
+          uri,
+          data.formData,
+          defaultPopName,
+        );
       });
 
       photoUrlMap = await uploadFilesInBatchToTelegram(
         allPhotoUris,
         '',
-        2,
+        10,
         metadataMap,
       );
       remotePhotos = remotePhotos.map(p => photoUrlMap[p] || p);
@@ -179,6 +317,32 @@ export const processInspectionMediaForCloud = async (data: {
     data.formData || {},
     photoUrlMap,
   );
+
+  // Copy photoTimestamps and photoCoordinates to the new telegram:// URIs
+  if (updatedFormData.photoTimestamps) {
+    Object.entries(photoUrlMap).forEach(([localUri, teleUri]) => {
+      if (teleUri) {
+        const meta = metadataMap[localUri];
+        if (meta && meta.timestamp) {
+          updatedFormData.photoTimestamps[teleUri] = meta.timestamp;
+        } else if (updatedFormData.photoTimestamps[localUri]) {
+          updatedFormData.photoTimestamps[teleUri] = updatedFormData.photoTimestamps[localUri];
+        }
+      }
+    });
+  }
+  if (updatedFormData.photoCoordinates) {
+    Object.entries(photoUrlMap).forEach(([localUri, teleUri]) => {
+      if (teleUri) {
+        const meta = metadataMap[localUri];
+        if (meta && meta.coordinates) {
+          updatedFormData.photoCoordinates[teleUri] = meta.coordinates;
+        } else if (updatedFormData.photoCoordinates[localUri]) {
+          updatedFormData.photoCoordinates[teleUri] = updatedFormData.photoCoordinates[localUri];
+        }
+      }
+    });
+  }
 
   return {
     remotePdfPath,
@@ -398,11 +562,19 @@ export const restoreInspectionsFromFirebase = async () => {
     // 1. If remote Firestore is empty (user deleted all inspections in console)
     if (!remoteInspections || remoteInspections.length === 0) {
       const allSyncedLocal = await inspectionCollection
-        .query(Q.where('is_synced', true))
+        .query(
+          Q.and(
+            Q.where('status', 'completed'),
+            Q.where('is_synced', true),
+          ),
+        )
         .fetch();
       if (allSyncedLocal.length > 0) {
         await database.write(async () => {
           for (const local of allSyncedLocal) {
+            if (local.status === 'draft' || local.id === 'active_inspection_draft') {
+              continue;
+            }
             await local.destroyPermanently();
           }
         });
@@ -418,12 +590,20 @@ export const restoreInspectionsFromFirebase = async () => {
     const remoteIdSet = new Set(remoteInspections.map(r => r.id));
 
     await database.write(async () => {
-      // 2. Prune any local synced records that no longer exist in Firestore
+      // 2. Prune any local completed synced records that no longer exist in Firestore (never prune drafts)
       const allSyncedLocal = await inspectionCollection
-        .query(Q.where('is_synced', true))
+        .query(
+          Q.and(
+            Q.where('status', 'completed'),
+            Q.where('is_synced', true),
+          ),
+        )
         .fetch();
 
       for (const local of allSyncedLocal) {
+        if (local.status === 'draft' || local.id === 'active_inspection_draft') {
+          continue;
+        }
         if (!remoteIdSet.has(local.id)) {
           await local.destroyPermanently();
           restoredCount++;

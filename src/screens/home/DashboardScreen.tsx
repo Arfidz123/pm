@@ -15,6 +15,7 @@ import {
   Dimensions,
   Image,
   Easing,
+  BackHandler,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -98,6 +99,7 @@ export const DashboardScreen: React.FC = () => {
     activePopLocation,
     loadExistingInspection,
     resetInspection,
+    saveDraftNow,
   } = useInspectionStore();
   const [refreshing, setRefreshing] = useState(false);
   const [foundDraft, setFoundDraft] = useState<DraftInspectionData | null>(null);
@@ -284,7 +286,20 @@ export const DashboardScreen: React.FC = () => {
     navigation.navigate('StartInspection');
   };
 
-  const handleResumeDraft = () => {
+  // Silent auto-save draft on hardware back press when PM is active
+  useEffect(() => {
+    const onBackPress = () => {
+      if (activePopId) {
+        saveDraftNow().catch(() => {});
+      }
+      return false; // let Android handle standard exit
+    };
+
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, [activePopId]);
+
+  const handleResumeDraft = async () => {
     if (!foundDraft) return;
     loadExistingInspection(foundDraft, {
       id: foundDraft.assetId,
@@ -293,6 +308,7 @@ export const DashboardScreen: React.FC = () => {
       location: foundDraft.popLocation,
     });
     const draftName = foundDraft.popName;
+    await saveDraftNow();
     setFoundDraft(null);
     showAlert({
       type: 'success',
@@ -429,9 +445,6 @@ export const DashboardScreen: React.FC = () => {
             />
             <Text style={styles.headerOverline}>PREVENTIVE MAINTENANCE</Text>
             <Text style={styles.headerTitle}>{getGreeting()}</Text>
-            <Text style={styles.inspectorNameText}>
-              {inspectorName || 'Teknisi'}
-            </Text>
           </View>
         </Animated.View>
       </LinearGradient>

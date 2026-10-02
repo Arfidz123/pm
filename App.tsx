@@ -89,7 +89,12 @@ function AppInitializer() {
   useEffect(() => {
     const handleAppStateChange = (nextState: string) => {
       if (nextState.match(/inactive|background/)) {
-        useInspectionStore.getState().saveDraftNow().catch(() => {});
+        const store = useInspectionStore.getState();
+        if (store.activePopId) {
+          store.saveDraftNow().catch(err => {
+            console.warn('Auto-save draft on background error:', err);
+          });
+        }
       }
     };
     const sub = AppState.addEventListener('change', handleAppStateChange);

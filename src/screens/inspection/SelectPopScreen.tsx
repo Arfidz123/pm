@@ -56,7 +56,7 @@ export const SelectPopScreen: React.FC = () => {
   const [isAcknowledged, setIsAcknowledged] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { activePopId, setActivePop, setAsset } = useInspectionStore();
+  const { activePopId, activePopName, setActivePop, setAsset } = useInspectionStore();
 
   // Generator CAPTCHA 5 karakter acak unik
   const generateCaptcha = () => {
@@ -331,6 +331,32 @@ export const SelectPopScreen: React.FC = () => {
   };
 
   const handleSelectPop = (pop: Asset) => {
+    if (activePopId === pop.assetCode) {
+      // Sesi POP yang sama sedang aktif / baru dipulihkan dari draft. Jangan reset data form!
+      navigation.goBack();
+      return;
+    }
+
+    if (activePopId && activePopId !== pop.assetCode) {
+      showAlert({
+        type: 'warning',
+        title: 'Ganti POP Maintenance?',
+        message: `Sesi maintenance saat ini untuk POP ${activePopName || activePopId} akan direset. Apakah Anda yakin ingin beralih ke POP ${cleanPopName(pop.name)}?`,
+        buttons: [
+          { text: 'Batal', style: 'cancel' },
+          {
+            text: 'Ganti POP',
+            onPress: () => {
+              setActivePop(pop.assetCode, pop.name, pop.location, pop.specifications);
+              setAsset(pop.id);
+              navigation.goBack();
+            },
+          },
+        ],
+      });
+      return;
+    }
+
     setActivePop(pop.assetCode, pop.name, pop.location, pop.specifications);
     setAsset(pop.id);
     navigation.goBack();
