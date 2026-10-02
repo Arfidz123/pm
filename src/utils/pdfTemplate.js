@@ -1068,10 +1068,9 @@ var generatePdfHtml = function (
                 '        <!-- ======================================================= -->\n' +
                 '        <!-- PAGE 2: POWER SYSTEM (CATUAN & DISTRIBUSI UTAMA)        -->\n' +
                 '        <!-- ======================================================= -->\n' +
-                '        <div style="width: 100%; display: flex; justify-content: center; margin: 0 auto; box-sizing: border-box;">\n' +
-                '        <table class="power-system-table" style="border: 2px solid #000; width: 220%; zoom: 0.45; table-layout: fixed; border-collapse: collapse; margin: 0 auto 20px auto; font-size: 11px; box-sizing: border-box;">\n' +
+                '        <table class="power-system-table" style="width: 220%; zoom: 0.5; table-layout: fixed; border-collapse: collapse; border: none; margin-bottom: 20px; font-size: 11px;">\n' +
                 '          <tr>\n' +
-                '            <td style="width: 100%; padding: 0; border: none; vertical-align: top;">\n' +
+                '            <td style="width: 45%; padding: 0; border: 2px solid #000; vertical-align: top;">\n' +
                 '              <table style="width: 100%; border-collapse: collapse; border: none; margin: 0; padding: 0;">\n' +
                 '                <tr>\n' +
                 '                  <td width="20%" style="border: none; border-bottom: 2px solid #000; text-align: center; padding: 10px;">\n' +
@@ -1092,7 +1091,7 @@ var generatePdfHtml = function (
                 '                  </td>\n' +
                 '                </tr>\n' +
                 '              </table>\n' +
-                '              <table style="width: 15%; border-collapse: collapse; border: none; margin: 0; padding: 0;">\n' +
+                '              <table style="width: 35%; border-collapse: collapse; border: none; margin: 0; padding: 0;">\n' +
                 '                <tr>\n' +
                 '                  <td width="4%" style="border: none; padding: 5px 10px;"><b>NAMA POP</b></td>\n' +
                 '                  <td width="2%" style="border: none;"><b>:</b></td>\n' +
@@ -1299,7 +1298,7 @@ var generatePdfHtml = function (
                 '                              <td width="34%" style="border: 1.5px solid #000; padding: 2px;">Catatan</td>\n' +
                 '                            </tr>\n' +
                 '                            <tr>\n' +
-                '                              <td width="20%" style="border: 1.5px solid #000; padding: 2px;">Cek Kabel</td>\n' +
+                '                              <td width="20%" style="border: 1.5px solid #000; padding: 2px;"><b>Cek Kabel</b></td>\n' +
                 '                              <td width="10%" style="border: 1.5px solid #000; padding: 2px;">' +
                 (power.cekKabel ? ': ' + power.cekKabel : ':') +
                 '</td>\n' +
@@ -1309,7 +1308,7 @@ var generatePdfHtml = function (
                 '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui kondisi kabel terbakar, terkelupas</td>\n' +
                 '                            </tr>\n' +
                 '                            <tr>\n' +
-                '                              <td style="border: 1.5px solid #000; padding: 2px;">Cek Baut Terminal</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;"><b>Cek Baut Terminal</b></td>\n' +
                 '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
                 (power.cekBautTerminal ? ': ' + power.cekBautTerminal : ':') +
                 '</td>\n' +
@@ -1319,7 +1318,7 @@ var generatePdfHtml = function (
                 '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui tingkat kekencangan</td>\n' +
                 '                            </tr>\n' +
                 '                            <tr>\n' +
-                '                              <td style="border: 1.5px solid #000; padding: 2px;">Cek Baut MCB/MCCB</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;"><b>Cek Baut MCB/MCCB</b></td>\n' +
                 '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
                 (power.cekBautMCB ? ': ' + power.cekBautMCB : ':') +
                 '</td>\n' +
@@ -1329,7 +1328,7 @@ var generatePdfHtml = function (
                 '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui tingkat kekencangan</td>\n' +
                 '                            </tr>\n' +
                 '                            <tr>\n' +
-                '                              <td style="border: 1.5px solid #000; padding: 2px;">Indikator Lamp R,S,T</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;"><b>Indikator Lamp R,S,T</b></td>\n' +
                 '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
                 (power.indikatorLamp ? ': ' + power.indikatorLamp : ':') +
                 '</td>\n' +
@@ -1339,7 +1338,7 @@ var generatePdfHtml = function (
                 '                              <td style="border: 1.5px solid #000; padding: 2px; text-align: center;">Mengetahui kondisi mati, hilang</td>\n' +
                 '                            </tr>\n' +
                 '                            <tr>\n' +
-                '                              <td style="border: 1.5px solid #000; padding: 2px;">COS Genset</td>\n' +
+                '                              <td style="border: 1.5px solid #000; padding: 2px;"><b>COS Genset</b></td>\n' +
                 '                              <td style="border: 1.5px solid #000; padding: 2px;">' +
                 (power.cosGenset ? ': ' + power.cosGenset : ':') +
                 '</td>\n' +
@@ -1416,7 +1415,7 @@ var generatePdfHtml = function (
                 '                      </tr>\n' +
                 '                      <!-- BAND 3: BOTTOM (Tegangan & Arus AC, Pengecekan Arrester, Grounding System - SEJAJAR ATAS) -->\n' +
                 '                      <tr>\n' +
-                '                        <td style="vertical-align: top; padding: 0 5px 0 0; border: none;">\n' +
+                '                        <td style="vertical-align: top; padding: 0 5px 0 0;">\n' +
                 '                          <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 5px; margin-bottom: 5px;">\n' +
                 '                            <tr>\n' +
                 '                              <td width="51%" style="vertical-align: top; padding: 0; border: none;">\n' +
@@ -1432,9 +1431,9 @@ var generatePdfHtml = function (
                  *            power.teganganG_N/vGn (+ Tolak Ukur _TU)
                  * --------------------------------------------------------- */
                 '                                <!-- DOKUMENTASI: TABEL TEGANGAN CATUAN (AC) -->\n' +
-                '                                <table style="width: 100%; border-collapse: collapse; border: none;">\n' +
+                '                                <table style="width: 100%; border-collapse: collapse; border: 2px solid #000;">\n' +
                 '                                  <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                                    <td colspan="3" style="padding: 2px; border: none;">TEGANGAN CATUAN (AC)</td>\n' +
+                '                                    <td colspan="3" style="padding: 2px; border: 1.5px solid #000; border: none;">TEGANGAN CATUAN (AC)</td>\n' +
                 '                                  </tr>\n' +
                 '                                  <tr style="text-align: center; font-weight: bold;">\n' +
                 '                                    <td width="25%" style="padding: 2px; border: 1.5px solid #000;">Phasa</td>\n' +
@@ -1518,9 +1517,9 @@ var generatePdfHtml = function (
                  *            power.stabilizerKapasitas, power.stabilizerJumlah
                  * --------------------------------------------------------- */
                 '                                <!-- DOKUMENTASI: TABEL TOTAL ARUS TERPAKAI & STABILIZER -->\n' +
-                '                                <table style="width: 90%; border-collapse: collapse; border: none;">\n' +
+                '                                <table style="width: 90%; border-collapse: collapse; border: 2px solid #000;border:none;">\n' +
                 '                                  <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                                    <td colspan="2" style="padding: 2px; border: none;">TOTAL ARUS TERPAKAI (AC)</td>\n' +
+                '                                    <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">TOTAL ARUS TERPAKAI (AC)</td>\n' +
                 '                                  </tr>\n' +
                 '                                  <tr style="text-align: center;">\n' +
                 '                                    <td width="50%" style="padding: 2px; border: 1.5px solid #000;">Phasa (A)</td>\n' +
@@ -1553,7 +1552,7 @@ var generatePdfHtml = function (
                 '</td>\n' +
                 '                                  </tr>\n' +
                 '                                  <tr style="background-color: red; color: white; font-weight: bold; text-align: center;">\n' +
-                '                                    <td colspan="2" style="padding: 2px; border: none;">STABILIZER</td>\n' +
+                '                                    <td colspan="2" style="padding: 2px; border: 1.5px solid #000;">STABILIZER</td>\n' +
                 '                                  </tr>\n' +
                 '                                  <tr style="text-align: center;">\n' +
                 '                                    <td style="padding: 2px; border: 1.5px solid #000;">Kapasitas (kVA)</td>\n' +
@@ -2063,9 +2062,9 @@ var generatePdfHtml = function (
                 '                </tr>\n' +
                 '              </table>\n' +
                 '            </td>\n' +
+                '            <td style="width: 55%; border: none; padding: 0;"></td>\n' +
                 '          </tr>\n' +
                 '        </table>\n' +
-                '        </div>\n' +
                 '        <div class="page-break"></div>\n',
         );
 
@@ -5354,15 +5353,15 @@ var generatePdfSections = function (
                                 'px; box-sizing: border-box; background: #fff;';
 
                         if (isPowerSystem) {
-                                // Posisikan di tengah (center-aligned)
-                                bodyStyle =
-                                        'padding: 15px; margin: 0 auto; width: ' +
-                                        pageWidth +
-                                        'px; box-sizing: border-box; background: #fff; overflow-x: hidden !important; max-width: ' +
+                                // Kembalikan ke posisi semula: margin 0 auto dan padding standar simetris
+                                bodyStyle +=
+                                        ' overflow-x: hidden !important; max-width: ' +
                                         pageWidth +
                                         'px;';
                                 trimmed =
-                                        '<div style="width: 100%; margin: 0 auto; box-sizing: border-box; display: flex; justify-content: center;">' +
+                                        '<div style="width: 100%; max-width: ' +
+                                        (pageWidth - 30) +
+                                        'px; overflow: hidden; box-sizing: border-box;">' +
                                         trimmed +
                                         '</div>';
                         }
