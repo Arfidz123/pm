@@ -52,9 +52,10 @@ export const DynamicPhotoCard: React.FC<DynamicPhotoCardProps> = ({
       : '');
   const displayAddressStr =
     addressStr ||
-    (formData?.infoPop?.alamat && formData.infoPop.alamat.trim() !== ''
-      ? formData.infoPop.alamat.trim()
-      : activePopLocation || currentLocation?.address || '-');
+    (currentLocation?.address && currentLocation.address.trim() !== ''
+      ? currentLocation.address.trim()
+      : null) ||
+    '-';
 
   useEffect(() => {
     let isMounted = true;

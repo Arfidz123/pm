@@ -634,7 +634,13 @@ export const useInspectionStore = create<InspectionState>()((set, get) => ({
       .catch(() => {});
   },
   setCurrentLocation: loc => {
-    set({ currentLocation: loc });
+    set(state => ({
+      currentLocation: loc,
+      formData: {
+        ...state.formData,
+        currentLocation: loc,
+      },
+    }));
     scheduleAutoSave(get);
   },
   setEditingInspectionId: id => set({ editingInspectionId: id }),

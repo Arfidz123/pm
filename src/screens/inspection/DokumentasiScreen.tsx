@@ -163,9 +163,10 @@ export const DokumentasiScreen: React.FC = () => {
       ? `${currentLocation.lat.toFixed(5)}, ${currentLocation.lng.toFixed(5)}`
       : '');
   const addressStr =
-    infoPop.alamat && infoPop.alamat.trim() !== ''
-      ? infoPop.alamat
-      : activePopLocation || currentLocation?.address || '-';
+    (currentLocation?.address && currentLocation.address.trim() !== ''
+      ? currentLocation.address.trim()
+      : null) ||
+    '-';
   const now = new Date();
   const dateStr = `${now.toLocaleDateString('id-ID', {
     day: '2-digit',

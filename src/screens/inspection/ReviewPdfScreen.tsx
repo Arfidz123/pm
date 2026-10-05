@@ -78,6 +78,7 @@ export const ReviewPdfScreen: React.FC = () => {
   const mergedFormData = useMemo(
     () => ({
       ...formData,
+      currentLocation: formData.currentLocation || currentLocation,
       infoPop: {
         ...(formData as any)?.infoPop,
         popId: activePopId,

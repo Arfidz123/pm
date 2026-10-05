@@ -79,9 +79,10 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
       ? `${currentLocation.lat.toFixed(5)}, ${currentLocation.lng.toFixed(5)}`
       : '');
   const addressStr =
-    infoPop.alamat && infoPop.alamat.trim() !== ''
-      ? infoPop.alamat.trim()
-      : activePopLocation || currentLocation?.address || '-';
+    (currentLocation?.address && currentLocation.address.trim() !== ''
+      ? currentLocation.address.trim()
+      : null) ||
+    '-';
   const dateStr = imageUri ? getPhotoTimestamp(imageUri) : '';
 
   const isStampedOrCloudPhoto = Boolean(

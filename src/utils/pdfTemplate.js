@@ -135,17 +135,23 @@ var generatePdfHtml = function (
                         formData.currentLocation.lng.toFixed(5)
                         : '') ||
                 (activePopLocation ? activePopLocation : '-');
-        var popAddress =
-                (infoPop.alamat && infoPop.alamat.trim() !== ''
-                        ? infoPop.alamat.trim()
+        // Sesuai permintaan: Alamat pada foto HANYA menggunakan alamat GPS (bukan alamat dari POP)
+        var gpsAddress =
+                (formData.currentLocation && formData.currentLocation.address && String(formData.currentLocation.address).trim() !== ''
+                        ? String(formData.currentLocation.address).trim()
                         : null) ||
-                (activePopLocation ? activePopLocation : null) ||
-                (formData.currentLocation && formData.currentLocation.address
-                        ? formData.currentLocation.address
-                        : '-');
+                (formData.photoAddress && String(formData.photoAddress).trim() !== ''
+                        ? String(formData.photoAddress).trim()
+                        : null) ||
+                (formData.gpsAddress && String(formData.gpsAddress).trim() !== ''
+                        ? String(formData.gpsAddress).trim()
+                        : null) ||
+                '-';
+        var popAddress = gpsAddress;
 
         var photoTimestamps = formData.photoTimestamps || {};
         var photoCoordinates = formData.photoCoordinates || {};
+        var photoAddresses = formData.photoAddresses || {};
         var isCloudPhoto = function (u) {
                 if (!u || typeof u !== 'string') return false;
                 return (
@@ -162,6 +168,12 @@ var generatePdfHtml = function (
         var getPhotoCoord = function (pUri) {
                 if (!pUri) return popCoords;
                 return photoCoordinates[pUri] || popCoords;
+        };
+        var getPhotoAddress = function (pUri) {
+                if (pUri && photoAddresses[pUri] && String(photoAddresses[pUri]).trim() !== '') {
+                        return String(photoAddresses[pUri]).trim();
+                }
+                return gpsAddress;
         };
 
         var safeStr = function (val) {
@@ -748,7 +760,19 @@ var generatePdfHtml = function (
                 }
 
                 if (collectedItems.length === 0) {
-                        return '<div style="padding: 30px; text-align: center; color: #666; font-style: italic; font-size: 13px;">Belum ada foto dokumentasi.</div>';
+                        return (
+                                '        <!-- PAGE 7: DOKUMENTASI -->\n' +
+                                '        <div style="width: 96%; margin: 0 auto; margin-bottom: 20px;">\n' +
+                                '          <div style="border: 2px solid #000; width: 100%; box-sizing: border-box; background: #fff;">\n' +
+                                '            <div style="background-color: #808080; color: #000; font-weight: bold; padding: 6px 10px; font-size: 13px; border-bottom: 1px solid #000; page-break-after: avoid; break-after: avoid;">\n' +
+                                '              DOKUMENTASI\n' +
+                                '            </div>\n' +
+                                '            <div style="padding: 10px 5px; text-align: left; box-sizing: border-box;">\n' +
+                                '              <div style="padding: 30px; text-align: center; color: #666; font-style: italic; font-size: 13px;">Belum ada foto dokumentasi.</div>\n' +
+                                '            </div>\n' +
+                                '          </div>\n' +
+                                '        </div>\n'
+                        );
                 }
 
                 // SORT strictly by the defined order (POP Bagian Luar first, Lainnya at the very end)
@@ -765,44 +789,147 @@ var generatePdfHtml = function (
                         return orderA - orderB;
                 });
 
-                var cardsHtml = collectedItems
-                        .map(function (item, index) {
+                // Chunk foto ke dalam grid 4x4 (maksimal 16 foto per lembar dokumentasi)
+                var dokPages = [];
+                for (var p = 0; p < collectedItems.length; p += 16) {
+                        dokPages.push(collectedItems.slice(p, p + 16));
+                }
+
+                return dokPages
+                        .map(function (pagePhotos, pageIdx) {
+                                var headerTitle =
+                                        dokPages.length > 1
+                                                ? 'DOKUMENTASI (HALAMAN ' + (pageIdx + 1) + ' DARI ' + dokPages.length + ')'
+                                                : 'DOKUMENTASI';
+
+                                var cardsHtml = pagePhotos
+                                        .map(function (item) {
+                                                return (
+                                                        '<div style="position: relative; display: inline-block; vertical-align: top; width: 23.5%; margin: 4px 0.75%; box-sizing: border-box; text-align: left; border: 1px solid #000; background: #fff; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.12); page-break-inside: avoid; break-inside: avoid;">' +
+                                                        '<div style="position: relative; width: 100%; text-align: center; height: 115px; overflow: hidden; background: #eee;">' +
+                                                        '<div style="position: absolute; top: 2px; left: 2px; background: rgba(0,0,0,0.7); color: #ffffff; padding: 1.5px 4px; border-radius: 2px; font-size: 6.5px; font-weight: bold; font-family: monospace, sans-serif; text-shadow: 0.5px 0.5px 1px #000; text-align: left; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
+                                                          item.label +
+                                                          '</div>' +
+                                                        '<img src="' +
+                                                        formatImgUri(item.uri) +
+                                                        '" style="width: 100%; height: 115px; object-fit: cover; display: block;" />' +
+                                                        (!isCloudPhoto(item.uri)
+                                                                ? '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: rgba(0,0,0,0.55); color: #ffffff; padding: 2px 3px; font-size: 5.5px; line-height: 1.15; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000; border-radius: 2px;">' +
+                                                                  '<div style="color: #ffffff; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Tgl/Jam : ' +
+                                                                  getPhotoTs(item.uri) +
+                                                                  '</div>' +
+                                                                  '<div style="color: #ffffff; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Koordinat : ' +
+                                                                  getPhotoCoord(item.uri) +
+                                                                  '</div>' +
+                                                                  '<div style="color: #ffffff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Alamat : ' +
+                                                                  getPhotoAddress(item.uri) +
+                                                                  '</div>' +
+                                                                  '</div>'
+                                                                : '') +
+                                                        '</div>' +
+                                                        '</div>'
+                                                );
+                                        })
+                                        .join('');
+
                                 return (
-                                        '<div style="position: relative; display: inline-block; vertical-align: top; width: 23.5%; margin: 6px 0.75%; box-sizing: border-box; text-align: left; border: 1px solid #000; background: #fff; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.15); page-break-inside: avoid; break-inside: avoid;">' +
-                                        '<div style="position: relative; width: 100%; text-align: center;">' +
-                                        (!isCloudPhoto(item.uri)
-                                                ? '<div style="position: absolute; top: 2px; left: 2px; background: rgba(0,0,0,0.65); color: #ffffff; padding: 1px 4px; border-radius: 2px; font-size: 6px; font-weight: bold; font-family: monospace, sans-serif; text-shadow: 0.5px 0.5px 1px #000; text-align: left; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
-                                                item.label +
-                                                '</div>'
-                                                : '') +
-                                        '<img src="' +
-                                        formatImgUri(item.uri) +
-                                        '" style="width: 100%; height: auto; display: block;" />' +
-                                        (!isCloudPhoto(item.uri)
-                                                ? '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: transparent; color: #ffffff; padding: 0; font-size: 5px; line-height: 1.1; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000, -0.5px -0.5px 1px #000;">' +
-                                                '<div style="color: #ffffff; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Tgl/Jam : ' +
-                                                getPhotoTs(item.uri) +
-                                                '</div>' +
-                                                '<div style="color: #ffffff; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Koordinat : ' +
-                                                getPhotoCoord(item.uri) +
-                                                '</div>' +
-                                                '<div style="color: #ffffff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">Alamat : ' +
-                                                popAddress +
-                                                '</div>' +
-                                                '</div>'
-                                                : '') +
-                                        '</div>' +
-                                        '</div>'
+                                        '        <!-- PAGE 7: DOKUMENTASI (HALAMAN ' + (pageIdx + 1) + ') -->\n' +
+                                        '        <div style="width: 96%; margin: 0 auto; margin-bottom: 20px;">\n' +
+                                        '          <div style="border: 2px solid #000; width: 100%; box-sizing: border-box; background: #fff;">\n' +
+                                        '            <div style="background-color: #808080; color: #000; font-weight: bold; padding: 6px 10px; font-size: 13px; border-bottom: 1px solid #000; page-break-after: avoid; break-after: avoid;">\n' +
+                                        '              ' + headerTitle + '\n' +
+                                        '            </div>\n' +
+                                        '            <div style="padding: 8px 5px; text-align: left; box-sizing: border-box;">\n' +
+                                        '              <div style="width: 100%; text-align: left; box-sizing: border-box;">\n' +
+                                        cardsHtml + '\n' +
+                                        '              </div>\n' +
+                                        '            </div>\n' +
+                                        '          </div>\n' +
+                                        '        </div>\n'
+                                );
+                        })
+                        .join('\n        <div class="page-break"></div>\n');
+        };
+
+        /* --- Helper Render Blok Foto Fisik (Tanpa header, format tabel seperti sebelumnya, garis pemisah dihilangkan, 3 foto per baris) --- */
+        var renderPhysicalPhotosBlock = function (photosList, title, defaultLabel) {
+                if (!Array.isArray(photosList) || photosList.length === 0) {
+                        return (
+                                '        <table style="border: 2px solid #000; border-collapse: collapse; width: 100%; margin-bottom: 20px;">\n' +
+                                '          <tr>\n' +
+                                '            <td class="bold text-center" style="vertical-align: middle; width: 10%; height: 120px; border: none;"><span style="white-space: nowrap;">Photos:</span></td>\n' +
+                                '            <td style="padding: 10px; height: 120px; border: none;"></td>\n' +
+                                '          </tr>\n' +
+                                '        </table>\n'
+                        );
+                }
+
+                // Chunk foto per 3 foto per baris agar pas di samping kolom Photos:
+                var photoChunks = [];
+                for (var i = 0; i < photosList.length; i += 3) {
+                        photoChunks.push(photosList.slice(i, i + 3));
+                }
+
+                var rowsHtml = photoChunks
+                        .map(function (chunk, rowIdx) {
+                                var leftCell =
+                                        rowIdx === 0
+                                                ? '<td class="bold text-center" style="vertical-align: middle; width: 10%; border: none; padding: 4px;"><span style="white-space: nowrap;">Photos:</span></td>'
+                                                : '<td style="width: 10%; border: none; padding: 0;"></td>';
+
+                                var cardsHtml = chunk
+                                        .map(function (item) {
+                                                var uri = typeof item === 'string' ? item : item && item.uri ? item.uri : null;
+                                                if (!uri) return '';
+                                                var catLabel =
+                                                        (typeof item === 'object' && item.label) ||
+                                                        (formData.photoCategories && formData.photoCategories[uri]) ||
+                                                        defaultLabel ||
+                                                        'Foto';
+
+                                                return (
+                                                        '<div style="position: relative; display: inline-block; vertical-align: top; width: 31.8%; margin: 4px 0.75%; box-sizing: border-box; border: 1px solid #000; overflow: hidden; border-radius: 4px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.12); page-break-inside: avoid; break-inside: avoid;">' +
+                                                        '<div style="position: relative; width: 100%; text-align: center; height: 135px; overflow: hidden; background: #eee;">' +
+                                                        '<div style="position: absolute; top: 3px; left: 3px; background: rgba(0,0,0,0.7); color: #ffffff; padding: 2px 5px; border-radius: 3px; font-size: 7px; font-weight: bold; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
+                                                        catLabel +
+                                                        '</div>' +
+                                                        '<img src="' +
+                                                        formatImgUri(uri) +
+                                                        '" style="width: 100%; height: 135px; object-fit: cover; display: block;" />' +
+                                                        '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: rgba(0,0,0,0.55); color: #ffffff; padding: 2px 3px; font-size: 5.8px; line-height: 1.15; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000; border-radius: 2px;">' +
+                                                        '<div style="color: #ffffff; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Tgl/Jam : ' +
+                                                        getPhotoTs(uri) +
+                                                        '</div>' +
+                                                        '<div style="color: #ffffff; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Koordinat : ' +
+                                                        getPhotoCoord(uri) +
+                                                        '</div>' +
+                                                        '<div style="color: #ffffff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Alamat : ' +
+                                                        getPhotoAddress(uri) +
+                                                        '</div>' +
+                                                        '</div>' +
+                                                        '</div></div>'
+                                                );
+                                        })
+                                        .join('');
+
+                                return (
+                                        '  <tr style="page-break-inside: avoid; break-inside: avoid;">\n' +
+                                        '    ' + leftCell + '\n' +
+                                        '    <td style="padding: 4px; vertical-align: top; border: none;">\n' +
+                                        '      ' + cardsHtml + '\n' +
+                                        '    </td>\n' +
+                                        '  </tr>\n'
                                 );
                         })
                         .join('');
 
                 return (
-                        '<div style="width: 100%; text-align: left; box-sizing: border-box;">' +
-                        cardsHtml +
-                        '</div>'
+                        '        <table style="border: 2px solid #000; border-collapse: collapse; width: 100%; margin-bottom: 20px;">\n' +
+                        rowsHtml +
+                        '        </table>\n'
                 );
         };
+        var renderPhotosTableRows = renderPhysicalPhotosBlock;
 
         var bebanAcpdbRows = '';
         var mcbList =
@@ -4300,12 +4427,7 @@ var generatePdfHtml = function (
                 '        \n' +
                 '        <br/>\n' +
                 '        \n' +
-                '        <!-- 2. Tabel Foto Dokumentasi Fisik KWH Meter -->\n' +
-                '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
-                '          <tr>\n' +
-                '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
-                '              ' +
+                '        <!-- 2. Foto Dokumentasi Fisik KWH Meter -->\n' +
                 (function () {
                         // Mengumpulkan foto KWH Meter dari input langsung maupun bagian Dokumentasi
                         var kwhPhotos = (function () {
@@ -4358,53 +4480,10 @@ var generatePdfHtml = function (
                                                 }
                                         }
                                 });
-                                return list.map(function (item) {
-                                        return item.uri;
-                                });
+                                return list;
                         })();
-                        if (!Array.isArray(kwhPhotos) || kwhPhotos.length === 0)
-                                return '<div style="height: 120px;"></div>';
-                        return kwhPhotos
-                                .map(function (f) {
-                                        var uri = typeof f === 'string' ? f : f && f.uri ? f.uri : null;
-                                        if (!uri) return '';
-                                        var catLabel =
-                                                (formData.photoCategories && formData.photoCategories[uri]) ||
-                                                (kwh.photoCategories && kwh.photoCategories[uri]) ||
-                                                'Foto KWH Meter';
-                                        return (
-                                                '<div style="position: relative; display: inline-block; vertical-align: top; width: 230px; border: 1px solid #000; overflow: hidden; border-radius: 4px; margin-right: 14px; background: #fff;">' +
-                                                '<div style="position: relative; width: 100%; text-align: center;">' +
-                                                (!isCloudPhoto(uri)
-                                                        ? '<div style="position: absolute; top: 3px; left: 3px; background: rgba(0,0,0,0.65); color: #ffffff; padding: 1.5px 5px; border-radius: 2px; font-size: 7.5px; font-weight: bold; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
-                                                        catLabel +
-                                                        '</div>'
-                                                        : '') +
-                                                '<img src="' +
-                                                uri +
-                                                '" style="width: 100%; height: auto; display: block;" />' +
-                                                (!isCloudPhoto(uri)
-                                                        ? '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: transparent; color: #ffffff; padding: 0; font-size: 6px; line-height: 1.15; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000, -0.5px -0.5px 1px #000;">' +
-                                                        '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
-                                                        getPhotoTs(uri) +
-                                                        '</div>' +
-                                                        '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
-                                                        getPhotoCoord(uri) +
-                                                        '</div>' +
-                                                        '<div style="color: #ffffff;">Alamat : ' +
-                                                        popAddress +
-                                                        '</div>' +
-                                                        '</div>'
-                                                        : '') +
-                                                '</div></div>'
-                                        );
-                                })
-                                .join('');
+                        return renderPhysicalPhotosBlock(kwhPhotos, 'FOTO KWH METER', 'Foto KWH Meter');
                 })() +
-                '\n' +
-                '            </td>\n' +
-                '          </tr>\n' +
-                '        </table>\n' +
                 '        \n' +
                 '        <!-- 3. Tabel Catatan / Komentar KWH Meter -->\n' +
                 '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
@@ -4526,12 +4605,7 @@ var generatePdfHtml = function (
                         '        \n' +
                         '        <br/>\n' +
                         '        \n' +
-                        '        <!-- 2. Tabel Foto Dokumentasi Fisik ACPDB -->\n' +
-                        '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
-                        '          <tr>\n' +
-                        '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                        '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
-                        '              ' +
+                        '        <!-- 2. Foto Dokumentasi Fisik ACPDB -->\n' +
                         (function () {
                                 // Mengumpulkan foto terkait ACPDB dari input langsung maupun bagian Dokumentasi
                                 var acpdbPhotos = (function () {
@@ -4585,45 +4659,8 @@ var generatePdfHtml = function (
                                         });
                                         return list;
                                 })();
-                                if (!Array.isArray(acpdbPhotos) || acpdbPhotos.length === 0)
-                                        return '<div style="height: 120px;"></div>';
-                                return acpdbPhotos
-                                        .map(function (item) {
-                                                var uri = item.uri;
-                                                var catLabel = item.label || 'Foto ACPDB';
-                                                return (
-                                                        '<div style="position: relative; display: inline-block; vertical-align: top; width: 230px; border: 1px solid #000; overflow: hidden; border-radius: 4px; margin-right: 14px; background: #fff;">' +
-                                                        '<div style="position: relative; width: 100%; text-align: center;">' +
-                                                        (!isCloudPhoto(uri)
-                                                                ? '<div style="position: absolute; top: 3px; left: 3px; background: rgba(0,0,0,0.65); color: #ffffff; padding: 1.5px 5px; border-radius: 2px; font-size: 7.5px; font-weight: bold; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
-                                                                catLabel +
-                                                                '</div>'
-                                                                : '') +
-                                                        '<img src="' +
-                                                        uri +
-                                                        '" style="width: 100%; height: auto; display: block;" />' +
-                                                        (!isCloudPhoto(uri)
-                                                                ? '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: transparent; color: #ffffff; padding: 0; font-size: 6px; line-height: 1.15; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000, -0.5px -0.5px 1px #000;">' +
-                                                                '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
-                                                                getPhotoTs(uri) +
-                                                                '</div>' +
-                                                                '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
-                                                                getPhotoCoord(uri) +
-                                                                '</div>' +
-                                                                '<div style="color: #ffffff;">Alamat : ' +
-                                                                popAddress +
-                                                                '</div>' +
-                                                                '</div>'
-                                                                : '') +
-                                                        '</div></div>'
-                                                );
-                                        })
-                                        .join('');
+                                return renderPhysicalPhotosBlock(acpdbPhotos, 'FOTO ACPDB', 'Foto ACPDB');
                         })() +
-                        '\n' +
-                        '            </td>\n' +
-                        '          </tr>\n' +
-                        '        </table>\n' +
                         '        \n' +
                         '        <!-- 3. Tabel Catatan / Komentar ACPDB -->\n' +
                         '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
@@ -4744,12 +4781,7 @@ var generatePdfHtml = function (
                         '        \n' +
                         '        <br/>\n' +
                         '        \n' +
-                        '        <!-- 2. Tabel Foto Dokumentasi Fisik DCPDB -->\n' +
-                        '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
-                        '          <tr>\n' +
-                        '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                        '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
-                        '              ' +
+                        '        <!-- 2. Foto Dokumentasi Fisik DCPDB -->\n' +
                         (function () {
                                 // Mengumpulkan foto terkait DCPDB dari input langsung maupun bagian Dokumentasi
                                 var dcpdbPhotos = (function () {
@@ -4803,45 +4835,8 @@ var generatePdfHtml = function (
                                         });
                                         return list;
                                 })();
-                                if (!Array.isArray(dcpdbPhotos) || dcpdbPhotos.length === 0)
-                                        return '<div style="height: 120px;"></div>';
-                                return dcpdbPhotos
-                                        .map(function (item) {
-                                                var uri = item.uri;
-                                                var catLabel = item.label || 'Foto DCPDB';
-                                                return (
-                                                        '<div style="position: relative; display: inline-block; vertical-align: top; width: 230px; border: 1px solid #000; overflow: hidden; border-radius: 4px; margin-right: 14px; background: #fff;">' +
-                                                        '<div style="position: relative; width: 100%; text-align: center;">' +
-                                                        (!isCloudPhoto(uri)
-                                                                ? '<div style="position: absolute; top: 3px; left: 3px; background: rgba(0,0,0,0.65); color: #ffffff; padding: 1.5px 5px; border-radius: 2px; font-size: 7.5px; font-weight: bold; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
-                                                                catLabel +
-                                                                '</div>'
-                                                                : '') +
-                                                        '<img src="' +
-                                                        uri +
-                                                        '" style="width: 100%; height: auto; display: block;" />' +
-                                                        (!isCloudPhoto(uri)
-                                                                ? '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: transparent; color: #ffffff; padding: 0; font-size: 6px; line-height: 1.15; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000, -0.5px -0.5px 1px #000;">' +
-                                                                '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
-                                                                getPhotoTs(uri) +
-                                                                '</div>' +
-                                                                '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
-                                                                getPhotoCoord(uri) +
-                                                                '</div>' +
-                                                                '<div style="color: #ffffff;">Alamat : ' +
-                                                                popAddress +
-                                                                '</div>' +
-                                                                '</div>'
-                                                                : '') +
-                                                        '</div></div>'
-                                                );
-                                        })
-                                        .join('');
+                                return renderPhysicalPhotosBlock(dcpdbPhotos, 'FOTO DCPDB', 'Foto DCPDB');
                         })() +
-                        '\n' +
-                        '            </td>\n' +
-                        '          </tr>\n' +
-                        '        </table>\n' +
                         '        \n' +
                         '        <!-- 3. Tabel Catatan / Komentar DCPDB -->\n' +
                         '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
@@ -5064,56 +5059,11 @@ var generatePdfHtml = function (
                                         }
                                 }
                         });
-                        return list.map(function (item) {
-                                return item.uri;
-                        });
+                        return list;
                 })();
                 rectContent +=
-                        '<table style="border: 2px solid #000; border-collapse: collapse; width: 100%; margin-bottom: 20px;">\n' +
-                        '          <tr>\n' +
-                        '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                        '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
-                        (rectPhotos.length === 0
-                                ? '<div style="height: 120px;"></div>'
-                                : rectPhotos
-                                        .map(function (f) {
-                                                var uri = typeof f === 'string' ? f : f && f.uri ? f.uri : null;
-                                                if (!uri) return '';
-                                                var catLabel =
-                                                        (formData.photoCategories && formData.photoCategories[uri]) ||
-                                                        (rect.photoCategories && rect.photoCategories[uri]) ||
-                                                        'Foto Rectifier';
-                                                return (
-                                                        '<div style="position: relative; display: inline-block; vertical-align: top; width: 230px; border: 1px solid #000; overflow: hidden; border-radius: 4px; margin-right: 14px; background: #fff;">' +
-                                                        '<div style="position: relative; width: 100%; text-align: center;">' +
-                                                        (!isCloudPhoto(uri)
-                                                                ? '<div style="position: absolute; top: 3px; left: 3px; background: rgba(0,0,0,0.65); color: #ffffff; padding: 1.5px 5px; border-radius: 2px; font-size: 7.5px; font-weight: bold; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
-                                                                catLabel +
-                                                                '</div>'
-                                                                : '') +
-                                                        '<img src="' +
-                                                        uri +
-                                                        '" style="width: 100%; height: auto; display: block;" />' +
-                                                        (!isCloudPhoto(uri)
-                                                                ? '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: transparent; color: #ffffff; padding: 0; font-size: 6px; line-height: 1.15; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000, -0.5px -0.5px 1px #000;">' +
-                                                                '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
-                                                                getPhotoTs(uri) +
-                                                                '</div>' +
-                                                                '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
-                                                                getPhotoCoord(uri) +
-                                                                '</div>' +
-                                                                '<div style="color: #ffffff;">Alamat : ' +
-                                                                popAddress +
-                                                                '</div>' +
-                                                                '</div>'
-                                                                : '') +
-                                                        '</div></div>'
-                                                );
-                                        })
-                                        .join('')) +
-                        '            </td>\n' +
-                        '          </tr>\n' +
-                        '        </table>\n' +
+                        renderPhysicalPhotosBlock(rectPhotos, 'FOTO RECTIFIER', 'Foto Rectifier') +
+
                         '        <table style="border: 2px solid #000; border-collapse: collapse; width: 100%; margin-bottom: 20px;">\n' +
                         '          <tr>\n' +
                         '            <td colspan="2" class="bold" style="padding: 10px; height: 50px; vertical-align: top;">\n' +
@@ -5291,50 +5241,10 @@ var generatePdfHtml = function (
                                 }
                         }
                 });
-                return list.map(function (item) {
-                        return item.uri;
-                });
+                return list;
         })();
-        var batPhotosHtml = (function () {
-                if (!Array.isArray(batPhotos) || batPhotos.length === 0)
-                        return '<div style="height: 120px;"></div>';
-                return batPhotos
-                        .map(function (f) {
-                                var uri = typeof f === 'string' ? f : f && f.uri ? f.uri : null;
-                                if (!uri) return '';
-                                var catLabel =
-                                        (formData.photoCategories && formData.photoCategories[uri]) ||
-                                        (battery.photoCategories && battery.photoCategories[uri]) ||
-                                        'Foto Battery';
-                                return (
-                                        '<div style="position: relative; display: inline-block; vertical-align: top; width: 230px; border: 1px solid #000; overflow: hidden; border-radius: 4px; margin-right: 14px; background: #fff;">' +
-                                        '<div style="position: relative; width: 100%; text-align: center;">' +
-                                        (!isCloudPhoto(uri)
-                                                ? '<div style="position: absolute; top: 3px; left: 3px; background: rgba(0,0,0,0.65); color: #ffffff; padding: 1.5px 5px; border-radius: 2px; font-size: 7.5px; font-weight: bold; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000; z-index: 2; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' +
-                                                catLabel +
-                                                '</div>'
-                                                : '') +
-                                        '<img src="' +
-                                        uri +
-                                        '" style="width: 100%; height: auto; display: block;" />' +
-                                        (!isCloudPhoto(uri)
-                                                ? '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background: transparent; color: #ffffff; padding: 0; font-size: 6px; line-height: 1.15; font-family: monospace, sans-serif; text-align: left; text-shadow: 0.5px 0.5px 1px #000, -0.5px -0.5px 1px #000;">' +
-                                                '<div style="color: #ffffff; font-weight: bold;">Tgl/Jam : ' +
-                                                getPhotoTs(uri) +
-                                                '</div>' +
-                                                '<div style="color: #ffffff; font-weight: bold;">Koordinat : ' +
-                                                getPhotoCoord(uri) +
-                                                '</div>' +
-                                                '<div style="color: #ffffff;">Alamat : ' +
-                                                popAddress +
-                                                '</div>' +
-                                                '</div>'
-                                                : '') +
-                                        '</div></div>'
-                                );
-                        })
-                        .join('');
-        })();
+        var batPhotosHtml = renderPhysicalPhotosBlock(batPhotos, 'FOTO BATTERY', 'Foto Battery');
+
 
         htmlParts.push(
                 '        <!-- PAGE 6: BATTERY -->\n' +
@@ -5352,15 +5262,7 @@ var generatePdfHtml = function (
                 vTotalRow +
                 '        </table>\n\n' +
                 '        <br/>\n\n' +
-                '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
-                '          <tr>\n' +
-                '            <td class="bold text-center" width="10%" style="vertical-align: middle; border-right: 2px solid #000;">Photos :</td>\n' +
-                '            <td style="padding: 10px; vertical-align: middle; text-align: left;">\n' +
-                batPhotosHtml +
-                '\n' +
-                '            </td>\n' +
-                '          </tr>\n' +
-                '        </table>\n\n' +
+                batPhotosHtml + '\n\n' +
                 '        <br/>\n\n' +
                 '        <table style="border: 2px solid #000; margin-bottom: 20px;">\n' +
                 '          <tr>\n' +
@@ -5376,19 +5278,7 @@ var generatePdfHtml = function (
         );
 
         /* PAGE 7: DOKUMENTASI */
-        htmlParts.push(
-                '        <!-- PAGE 7: DOKUMENTASI -->\n' +
-                '        <div style="width: 96%; margin: 0 auto; margin-bottom: 20px;">\n' +
-                '          <div style="border: 2px solid #000; width: 100%; box-sizing: border-box; background: #fff;">\n' +
-                '            <div style="background-color: #808080; color: #000; font-weight: bold; padding: 6px 10px; font-size: 13px; border-bottom: 1px solid #000; page-break-after: avoid; break-after: avoid;">\n' +
-                '              DOKUMENTASI\n' +
-                '            </div>\n' +
-                '            <div style="padding: 10px 5px; text-align: left; box-sizing: border-box;">\n' +
-                getDokumentasiHtml() + '\n' +
-                '            </div>\n' +
-                '          </div>\n' +
-                '        </div>\n',
-        );
+        htmlParts.push(getDokumentasiHtml());
 
         htmlParts.push('</body></html>');
         return htmlParts.join('\n');
@@ -5442,13 +5332,27 @@ var generatePdfSections = function (
                         if (!trimmed) return null;
                         var title = sectionTitles[idx] || 'Bagian ' + (idx + 1);
 
+                        var isDok = /DOKUMENTASI/i.test(trimmed);
+                        if (isDok) {
+                                if (idx === 12) {
+                                        title = 'Dokumentasi';
+                                } else if (idx > 12) {
+                                        title = 'Dokumentasi ' + (idx - 11);
+                                }
+                        }
+
                         // Power System uses portrait A4 (850px), Batrei/Battery & Dokumentasi are landscape (1100px), Genset (950px), others standard A4 portrait (850px)
                         var isPowerSystem =
                                 title === 'Power System' || /power-system-table/i.test(trimmed);
+                        var isLandscapeDok =
+                                title === 'Batrei' ||
+                                title === 'Battery' ||
+                                title.indexOf('Dokumentasi') !== -1 ||
+                                isDok;
                         var pageWidth =
                                 isPowerSystem
                                         ? 1500
-                                        : title === 'Batrei' || title === 'Battery' || title === 'Dokumentasi'
+                                        : isLandscapeDok
                                                 ? 1100
                                                 : title === 'Genset'
                                                         ? 950
