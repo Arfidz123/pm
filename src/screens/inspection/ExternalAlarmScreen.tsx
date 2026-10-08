@@ -1,13 +1,35 @@
-/**
- * External Alarm Screen
- * Tampilan standar konsisten dengan Mechanical Electrical Screen:
- * - Tidak ada subheader / accordion terpisah
- * - 'Konfigurasi External Alarm' langsung tampil sebagai kegiatan (font sama normalnya)
- * - Di kanannya langsung dropdown pilihan
- * - Di bawahnya kolom keterangan
- */
+/* -------------------------------------------------------------------------
+ * DOKUMENTASI MODUL: INSPEKSI & UJI EXTERNAL ALARM
+ * -------------------------------------------------------------------------
+ * File       : ExternalAlarmScreen.tsx
+ * Fungsi     : Pengujian sensor telemetri external alarm dan verifikasi integrasi NMS.
+ * Arsitektur : Hybrid 2-Tab Navigation (Top Segmented Tabs + Contextual Action Buttons).
+ *
+ * STRUKTUR TAHAPAN (TABS):
+ * 1. TAB 1 - Uji Sensor 1 - 5 (Sistem Utama & Power Source):
+ *    - 1. Uji Konfigurasi External Alarm (Setting NMS, Ping Cisco/GPA, Trigger test).
+ *    - 2. Uji Sensor PLN OFF External Alarm (Wiring, MCB PLN off, Status NMS).
+ *    - 3. Uji Sensor Battery Fail (Wiring, Cabut fuse battery, Status NMS).
+ *    - 4. Uji Sensor Rectifier Fail (Wiring, Matikan rectifier/MCB, Status NMS).
+ *    - 5. Uji Sensor Modul Rectifier Fail (Wiring, Cabut modul rectifier, Status NMS).
+ *
+ * 2. TAB 2 - Uji Sensor 6 - 10 & Catatan (Lingkungan, Fasilitas & Site):
+ *    - 6. Uji Sensor Temperature High (Wiring, Matikan AC ruangan, Suhu lokasi, NMS).
+ *    - 7. Uji Sensor Smoke & Heat (Wiring, Uji deteksi asap, Status NMS).
+ *    - 8. Uji Arrester & Grounding (Wiring, Cabut kaki arrester, Status NMS).
+ *    - 9. Uji Sensor Door Open (Wiring, Simulasi buka/tutup pintu, Status NMS).
+ *    - 10. Uji Sensor Genset Run (Wiring, Simulasi genset hidup, Status NMS).
+ *    - Card Catatan: Catatan umum teknisi & Tombol Simpan Inspeksi.
+ *
+ * Nilai Hasil Uji per Item:
+ * - Status Uji Utama: OK / NOK / N/A (jika N/A, sub-kegiatan otomatis disembunyikan).
+ * - Sub-kegiatan    : Dilakukan / Tidak Dilakukan / NA / Ada Alarm / Tidak Ada Alarm.
+ *
+ * State & Store:
+ * - Global Store    : useInspectionStore -> updateFormData('external_alarm', ...).
+ * ------------------------------------------------------------------------- */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -18,7 +40,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ChevronDown } from 'lucide-react-native';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 import { Colors, Typography, Spacing, BorderRadius, Shadow } from '../../theme';
 import { Header, DropdownModalPicker } from '../../components/common';
@@ -355,6 +377,14 @@ export const ExternalAlarmScreen: React.FC = () => {
     ...(formData.external_alarm || {}),
   };
 
+  const [activeTab, setActiveTab] = useState<1 | 2>(1);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const switchTab = (tab: 1 | 2) => {
+    setActiveTab(tab);
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
+
   // Universal Modal Picker State
   const [modalPicker, setModalPicker] = useState<{
     visible: boolean;
@@ -434,13 +464,57 @@ export const ExternalAlarmScreen: React.FC = () => {
       />
 
       <View style={styles.contentContainer}>
+        {/* -----------------------------------------------------------------
+          * NAVIGASI TAB: PEMBAGIAN UJI SENSOR TELEMETRI
+          * - Tab 1: Sensor Utama 1 - 5 (Konfigurasi, PLN Off, Battery, Rectifier)
+          * - Tab 2: Sensor Lingkungan 6 - 10 & Catatan (Temp, Smoke, Arrester, Door, Genset)
+          * ----------------------------------------------------------------- */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 1 && styles.tabButtonActive]}
+            onPress={() => switchTab(1)}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.tabButtonText,
+                activeTab === 1 && styles.tabButtonTextActive,
+              ]}
+            >
+              Uji Sensor 1-5
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 2 && styles.tabButtonActive]}
+            onPress={() => switchTab(2)}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.tabButtonText,
+                activeTab === 2 && styles.tabButtonTextActive,
+              ]}
+            >
+              Uji Sensor 6-10
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <ScrollView
+          ref={scrollViewRef}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* 10 Cards Pengujian External Alarm */}
-          {ALARM_SECTIONS.map(section => {
+          {/* ---------------------------------------------------------------
+            * CARDS PENGUJIAN SENSOR SESUAI TAB AKTIF
+            * Menampilkan daftar form uji sensor sesuai tab aktif.
+            * Setiap kegiatan memiliki evaluasi status (OK/NOK/NA) & keterangan.
+            * --------------------------------------------------------------- */}
+          {ALARM_SECTIONS.filter(section =>
+            activeTab === 1 ? section.id <= 5 : section.id > 5,
+          ).map(section => {
             const overallStatus = alarmData[section.overallKey] || '';
             const keteranganVal =
               alarmData[`${section.keyPrefix}_keterangan`] || '';
@@ -532,41 +606,74 @@ export const ExternalAlarmScreen: React.FC = () => {
             );
           })}
 
-          {/* Card Catatan */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Catatan</Text>
-            <View style={styles.titleDivider} />
-            <TextInput
-              style={[
-                styles.inputBox,
-                { height: 100, textAlignVertical: 'top', paddingTop: 10 },
-              ]}
-              value={
-                alarmData.catatan !== undefined
-                  ? alarmData.catatan
-                  : alarmData.generalNote || alarmData.note || ''
-              }
-              onChangeText={val => {
-                updateFields({
-                  generalNote: val,
-                  catatan: val,
-                  note: val,
-                });
-              }}
-              placeholder="Tambahkan catatan..."
-              placeholderTextColor={Colors.textMuted}
-              multiline
-            />
-          </View>
+          {/* ---------------------------------------------------------------
+            * SEKSI CATATAN KHUSUS (HANYA TAB 2)
+            * Tempat teknisi mencatat anomali atau rekomendasi terkait alarm.
+            * --------------------------------------------------------------- */}
+          {activeTab === 2 && (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Catatan</Text>
+              <View style={styles.titleDivider} />
+              <TextInput
+                style={[
+                  styles.inputBox,
+                  { height: 100, textAlignVertical: 'top', paddingTop: 10 },
+                ]}
+                value={
+                  alarmData.catatan !== undefined
+                    ? alarmData.catatan
+                    : alarmData.generalNote || alarmData.note || ''
+                }
+                onChangeText={val => {
+                  updateFields({
+                    generalNote: val,
+                    catatan: val,
+                    note: val,
+                  });
+                }}
+                placeholder="Tambahkan catatan..."
+                placeholderTextColor={Colors.textMuted}
+                multiline
+              />
+            </View>
+          )}
 
-          {/* Tombol Simpan & Kembali */}
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.saveButtonText}>Simpan & Kembali</Text>
-          </TouchableOpacity>
+          {/* ---------------------------------------------------------------
+            * NAVIGASI FOOTER (HYBRID CONTROLS)
+            * - Tab 1: Tombol Selanjutnya -> Melompat ke Tab 2.
+            * - Tab 2: Tombol Kembali -> Tab 1 & Tombol Simpan & Selesai.
+            * --------------------------------------------------------------- */}
+          <View style={styles.navContainer}>
+            {activeTab === 1 ? (
+              <TouchableOpacity
+                style={styles.nextButton}
+                onPress={() => switchTab(2)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.nextButtonText}>Selanjutnya</Text>
+                <ChevronRight color={Colors.white} size={16} />
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.dualButtonRow}>
+                <TouchableOpacity
+                  style={styles.backButton}
+                  onPress={() => switchTab(1)}
+                  activeOpacity={0.8}
+                >
+                  <ChevronLeft color={Colors.textSecondary} size={16} />
+                  <Text style={styles.backButtonText}>Kembali</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.saveButtonDual}
+                  onPress={() => navigation.goBack()}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.saveButtonText}>Simpan & Kembali</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </ScrollView>
       </View>
 
@@ -773,20 +880,105 @@ const styles = StyleSheet.create({
     ...Typography.body,
     fontSize: 13,
   },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    padding: 4,
+    borderRadius: BorderRadius.lg,
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.xs,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: 6,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.md,
+  },
+  tabButtonActive: {
+    backgroundColor: Colors.primary,
+    ...Shadow.sm,
+  },
+  tabButtonText: {
+    ...Typography.subtitle2,
+    color: Colors.textMuted,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  tabButtonTextActive: {
+    color: Colors.white,
+    fontWeight: '700',
+  },
+  navContainer: {
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.xl,
+  },
+  nextButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    height: 44,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    ...Shadow.sm,
+  },
+  nextButtonText: {
+    ...Typography.button,
+    color: Colors.white,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  dualButtonRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  backButton: {
+    flex: 1,
+    height: 44,
+    backgroundColor: Colors.surfaceLight,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  backButtonText: {
+    ...Typography.button,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  saveButtonDual: {
+    flex: 1,
+    height: 44,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadow.sm,
+  },
   saveButton: {
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.md,
-    paddingVertical: 14,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: Spacing.md,
     marginBottom: Spacing.xl,
-    ...Shadow.md,
+    ...Shadow.sm,
   },
   saveButtonText: {
     ...Typography.button,
     color: Colors.white,
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontWeight: '700',
+    fontSize: 14,
   },
 });

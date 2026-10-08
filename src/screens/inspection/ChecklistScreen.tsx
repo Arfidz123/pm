@@ -1,7 +1,23 @@
-/**
- * Checklist Screen
- * Dynamic checklist form based on the asset's template
- */
+/* -------------------------------------------------------------------------
+ * DOKUMENTASI MODUL: CHECKLIST INSPEKSI ASET DINAMIS
+ * -------------------------------------------------------------------------
+ * File       : ChecklistScreen.tsx
+ * Fungsi     : Form checklist dinamis berbasis template aset pemeliharaan.
+ * Fitur Utama:
+ * 1. Dynamic Rendering:
+ *    - Merender tipe input sesuai skema item (Boolean/Switch, Dropdown Option, Numeric, Text).
+ * 2. Progress Tracking:
+ *    - Menghitung jumlah item terisi secara real-time (completedCount vs totalCount).
+ *    - Menampilkan progress bar visual di bagian atas form.
+ * 3. Catatan & Flag Status:
+ *    - Setiap item memiliki input catatan dan penanda status kondisi (Pass, Fail, NA).
+ * 4. Navigasi Lanjut:
+ *    - Menyimpan perubahan ke inspectionStore dan mengarahkan ke layar Review.
+ *
+ * State & Store:
+ * - Store   : useInspectionStore -> checklistEntries, updateChecklistEntry.
+ * - Route   : inspectionId (parameter route stack).
+ * ------------------------------------------------------------------------- */
 
 import React, { useState } from 'react';
 import {

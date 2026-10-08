@@ -1,10 +1,41 @@
-/**
- * Genset Screen
- * Form Inspeksi Catuan Eksternal, Data Genset, ATS, Pemipaan & Bahan Bakar,
- * Visual Check Panel Genset, Pengukuran Output Generator, Item, Pengetesan, dan Kebersihan.
- */
+/* -------------------------------------------------------------------------
+ * DOKUMENTASI MODUL: INSPEKSI GENSET & CATUAN EKSTERNAL
+ * -------------------------------------------------------------------------
+ * File       : GensetScreen.tsx
+ * Fungsi     : Form inspeksi menyeluruh genset pembangkit cadangan dan sistem ATS.
+ * Arsitektur : Hybrid Multi-Step (Top Segmented Tabs + Bottom Action Buttons).
+ * Gatekeeper : Card Catuan Eksternal (Status: Ada / Tidak Ada).
+ *
+ * STRUKTUR TAHAPAN (TABS):
+ * 1. TAB 1 - Data & ATS:
+ *    - Spesifikasi Generator: SN, Merk Generator, Kapasitas (kVA), Phasa (1/3).
+ *    - Data Genset         : Merk Mesin, Tipe Genset, Engine Mark.
+ *    - Type Powerhouse     : Model (Fixed/Mobile), Type (Silent/Open), Running Hours.
+ *    - Sistem ATS          : Tipe (AMF/CDC), Controller, COS switch.
+ *
+ * 2. TAB 2 - Pemipaan & BBM:
+ *    - Tangki Solar        : Tangki Utama, Tangki Eksternal, Pipa & Valve Gate.
+ *    - Pompa Solar         : Pengujian Auto/Manual, Panel & Pelampung Pompa.
+ *    - Parameter BBM       : Kapasitas Tangki, Sisa Bulan Lalu/Sekarang, Pengisian.
+ *
+ * 3. TAB 3 - Fisik & Pengukuran:
+ *    - Visual Check Panel  : Relay, Wiring, Kabel, COS, NCB, Indikator, Fuse, dll.
+ *    - Pengukuran Output   : Tegangan R-N, S-N, T-N, G-N, R-G, S-G, T-G.
+ *    - Arus & Frekuensi    : Phasa R, S, T, R-S, R-T, S-T, Hz, dan Rekomendasi.
+ *
+ * 4. TAB 4 - Pengujian & Catatan:
+ *    - Item Pemeriksaan    : Coolant, Oli mesin, Air cleaner, Accu voltage, Arrester.
+ *    - Pengetesan ATS      : Start manual ATS/Genset, Pemindahan beban, Emergency stop.
+ *    - Pengetesan Auto     : Simulasi PLN Off & Stop Kontraktor PLN/Genset.
+ *    - Kebersihan & Ruang  : Mesin, Panel, Kondisi Bangunan, Fan, Air flow.
+ *    - Catatan & Simpan    : Catatan teknisi dan finalisasi inspeksi.
+ *
+ * State & Store:
+ * - Local State : form (menampung seluruh nilai input form mandiri).
+ * - Global Store: useInspectionStore -> updateFormData('genset', updated).
+ * ------------------------------------------------------------------------- */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,7 +46,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ChevronDown } from 'lucide-react-native';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 import { Colors, Typography, Spacing, BorderRadius, Shadow } from '../../theme';
 import { Header, DropdownModalPicker } from '../../components/common';
@@ -42,6 +73,13 @@ const ATS_COS_OPTIONS = [
   'Socomec',
   'Takada',
   'Other',
+];
+
+const GENSET_TABS = [
+  { id: 1, label: '1. Data & ATS' },
+  { id: 2, label: '2. Pemipaan' },
+  { id: 3, label: '3. Fisik & Ukur' },
+  { id: 4, label: '4. Pengujian' },
 ];
 
 export const GensetScreen: React.FC = () => {
@@ -240,6 +278,14 @@ export const GensetScreen: React.FC = () => {
   };
 
   const [form, setForm] = useState(defaultForm);
+
+  const [activeTab, setActiveTab] = useState<number>(1);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const switchTab = (tabId: number) => {
+    setActiveTab(tabId);
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
 
   // Modal Picker state
   const [modalPicker, setModalPicker] = useState<{
@@ -578,10 +624,16 @@ export const GensetScreen: React.FC = () => {
       />
 
       <ScrollView
+        ref={scrollViewRef}
         style={styles.content}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Card 1: Catuan Eksternal */}
+        {/* -----------------------------------------------------------------
+          * SEKSI GATEKEEPER: KETERSEDIAAN GENSET
+          * Menentukan apakah site memiliki genset cadangan atau tidak.
+          * Jika "Tidak Ada", seluruh form pengujian otomatis dilewati.
+          * ----------------------------------------------------------------- */}
+        {/* Card 1: Catuan Eksternal (Gatekeeper) */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View style={styles.cardTitleRow}>
@@ -603,9 +655,65 @@ export const GensetScreen: React.FC = () => {
               </View>
               <View style={styles.col} />
             </View>
+          </View>
+        </View>
 
-            {form.gensetAda === 'Ada' && (
-              <>
+
+
+        {/* -----------------------------------------------------------------
+          * NAVIGASI TAB: 4 TAHAPAN INSPEKSI GENSET
+          * ----------------------------------------------------------------- */}
+        {/* Top Segmented Tabs (Hanya tampil jika Genset Ada) */}
+        {form.gensetAda === 'Ada' && (
+          <View style={styles.tabBarContainer}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tabScrollContent}
+            >
+              {GENSET_TABS.map(tab => (
+                <TouchableOpacity
+                  key={tab.id}
+                  style={[
+                    styles.tabButton,
+                    activeTab === tab.id && styles.tabButtonActive,
+                  ]}
+                  onPress={() => switchTab(tab.id)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.tabButtonText,
+                      activeTab === tab.id && styles.tabButtonTextActive,
+                    ]}
+                  >
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* -----------------------------------------------------------------
+          * TAB 1: DATA GENSET & SISTEM ATS
+          * - Spesifikasi Generator (SN, Merk, Kapasitas, Phasa)
+          * - Data Mesin Genset (Merk, Tipe, Engine Mark)
+          * - Type Powerhouse (Model, Tipe, Running Hours)
+          * - Sistem ATS (Tipe, Controller, COS)
+          * ----------------------------------------------------------------- */}
+        {form.gensetAda === 'Ada' && activeTab === 1 && (
+          <>
+            {/* Spesifikasi Generator */}
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardTitleRow}>
+                  <Text style={styles.cardTitle}>Spesifikasi Generator</Text>
+                </View>
+              </View>
+              <View style={styles.titleDivider} />
+
+              <View style={styles.cardBody}>
                 <View style={styles.row}>
                   <View style={styles.col}>
                     <Text style={styles.inputLabel}>Serial Number</Text>
@@ -651,305 +759,350 @@ export const GensetScreen: React.FC = () => {
                     )}
                   </View>
                 </View>
-              </>
-            )}
-          </View>
-        </View>
-
-        {/* Card 2: Data Genset */}
-        {form.gensetAda === 'Ada' && (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={styles.cardTitleRow}>
-                <Text style={styles.cardTitle}>Data Genset</Text>
               </View>
             </View>
-            <View style={styles.titleDivider} />
 
-            <View style={styles.cardBody}>
-              <View style={styles.row}>
-                <View style={styles.col}>
-                  <Text style={styles.inputLabel}>Genset Merk</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={form.merkGenset}
-                    onChangeText={val => updateForm('merkGenset', val)}
-                    placeholder="—"
-                    placeholderTextColor={Colors.textMuted}
-                  />
-                </View>
-                <View style={styles.col}>
-                  <Text style={styles.inputLabel}>Genset Type</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={form.tipeGenset}
-                    onChangeText={val => updateForm('tipeGenset', val)}
-                    placeholder="—"
-                    placeholderTextColor={Colors.textMuted}
-                  />
+            {/* Card 2: Data Genset */}
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardTitleRow}>
+                  <Text style={styles.cardTitle}>Data Genset</Text>
                 </View>
               </View>
+              <View style={styles.titleDivider} />
 
-              <View style={styles.row}>
-                <View style={styles.col}>
-                  <Text style={styles.inputLabel}>Engine Mark</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={form.engineMerk}
-                    onChangeText={val => updateForm('engineMerk', val)}
-                    placeholder="—"
-                    placeholderTextColor={Colors.textMuted}
-                  />
+              <View style={styles.cardBody}>
+                <View style={styles.row}>
+                  <View style={styles.col}>
+                    <Text style={styles.inputLabel}>Genset Merk</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={form.merkGenset}
+                      onChangeText={val => updateForm('merkGenset', val)}
+                      placeholder="—"
+                      placeholderTextColor={Colors.textMuted}
+                    />
+                  </View>
+                  <View style={styles.col}>
+                    <Text style={styles.inputLabel}>Genset Type</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={form.tipeGenset}
+                      onChangeText={val => updateForm('tipeGenset', val)}
+                      placeholder="—"
+                      placeholderTextColor={Colors.textMuted}
+                    />
+                  </View>
                 </View>
-                <View style={styles.col} />
-              </View>
-            </View>
-          </View>
-        )}
 
-        {/* Card: Type Powerhouse */}
-        {form.gensetAda === 'Ada' && (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={styles.cardTitleRow}>
-                <Text style={styles.cardTitle}>Type Powerhouse</Text>
+                <View style={styles.row}>
+                  <View style={styles.col}>
+                    <Text style={styles.inputLabel}>Engine Mark</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={form.engineMerk}
+                      onChangeText={val => updateForm('engineMerk', val)}
+                      placeholder="—"
+                      placeholderTextColor={Colors.textMuted}
+                    />
+                  </View>
+                  <View style={styles.col} />
+                </View>
               </View>
             </View>
-            <View style={styles.titleDivider} />
 
-            <View style={styles.cardBody}>
-              <View style={styles.row}>
-                <View style={styles.col}>
-                  <Text style={styles.inputLabel}>Genset model</Text>
-                  {renderDropdownSelect(
-                    'gensetModel',
-                    form.gensetModel,
-                    val => updateForm('gensetModel', val),
-                    ['Fixed', 'Mobile'],
-                    undefined,
-                    'Pilih Model Genset',
-                  )}
-                </View>
-                <View style={styles.col}>
-                  <Text style={styles.inputLabel}>Genset Type</Text>
-                  {renderDropdownSelect(
-                    'gensetType',
-                    form.gensetType,
-                    val => updateForm('gensetType', val),
-                    ['Silent', 'Open'],
-                    undefined,
-                    'Pilih Tipe Genset',
-                  )}
+            {/* Card: Type Powerhouse */}
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardTitleRow}>
+                  <Text style={styles.cardTitle}>Type Powerhouse</Text>
                 </View>
               </View>
-              {renderMeasurementRow(
-                'Running Hour Check (Last Month)',
-                'runningHourLastMonth',
-                '—',
-                true,
-              )}
-              {renderMeasurementRow(
-                'Running Hour Check (Current Month)',
-                'runningHourCurrentMonth',
-                '—',
-                true,
-              )}
-              {renderMeasurementRow(
-                'Durasi pengecekan lalu - sekarang',
-                'durasiPengecekanLalu_Sekarang',
-                '—',
-                true,
-              )}
-            </View>
-          </View>
-        )}
+              <View style={styles.titleDivider} />
 
-        {/* Card 3: ATS */}
-        {form.gensetAda === 'Ada' && (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={styles.cardTitleRow}>
-                <Text style={styles.cardTitle}>ATS</Text>
-              </View>
-            </View>
-            <View style={styles.titleDivider} />
-
-            <View style={styles.cardBody}>
-              <View style={styles.row}>
-                <View style={styles.col}>
-                  <Text style={styles.inputLabel}>Type</Text>
-                  {renderDropdownSelect(
-                    'atsType',
-                    form.atsType,
-                    val => updateForm('atsType', val),
-                    ATS_TYPE_OPTIONS,
-                    undefined,
-                    'Pilih Type ATS',
-                  )}
-                </View>
-                <View style={styles.col}>
-                  <Text style={styles.inputLabel}>Controller</Text>
-                  {renderDropdownSelect(
-                    'atsController',
-                    form.atsController,
-                    val => updateForm('atsController', val),
-                    ATS_CONTROLLER_OPTIONS,
-                    undefined,
-                    'Pilih Controller ATS',
-                  )}
-                  {(form.atsController === 'Other' ||
-                    (Boolean(form.atsController) &&
-                      !ATS_CONTROLLER_OPTIONS.some(
-                        opt =>
-                          opt.toLowerCase() ===
-                          form.atsController.toLowerCase(),
-                      ))) && (
-                      <TextInput
-                        style={[styles.textInput, { marginTop: Spacing.xs }]}
-                        value={
-                          form.atsController === 'Other' ? '' : form.atsController
-                        }
-                        onChangeText={val =>
-                          updateForm('atsController', val || 'Other')
-                        }
-                        placeholder="Sebutkan controller..."
-                        placeholderTextColor={Colors.textMuted}
-                      />
+              <View style={styles.cardBody}>
+                <View style={styles.row}>
+                  <View style={styles.col}>
+                    <Text style={styles.inputLabel}>Genset model</Text>
+                    {renderDropdownSelect(
+                      'gensetModel',
+                      form.gensetModel,
+                      val => updateForm('gensetModel', val),
+                      ['Fixed', 'Mobile'],
+                      undefined,
+                      'Pilih Model Genset',
                     )}
-                </View>
-              </View>
-
-              <View style={styles.row}>
-                <View style={styles.col}>
-                  <Text style={styles.inputLabel}>COS</Text>
-                  {renderDropdownSelect(
-                    'atsCos',
-                    form.atsCos,
-                    val => updateForm('atsCos', val),
-                    ATS_COS_OPTIONS,
-                    undefined,
-                    'Pilih COS ATS',
-                  )}
-                  {(form.atsCos === 'Other' ||
-                    (Boolean(form.atsCos) &&
-                      !ATS_COS_OPTIONS.some(
-                        opt =>
-                          opt.toLowerCase() === form.atsCos.toLowerCase(),
-                      ))) && (
-                      <TextInput
-                        style={[styles.textInput, { marginTop: Spacing.xs }]}
-                        value={form.atsCos === 'Other' ? '' : form.atsCos}
-                        onChangeText={val => updateForm('atsCos', val || 'Other')}
-                        placeholder="Sebutkan COS..."
-                        placeholderTextColor={Colors.textMuted}
-                      />
+                  </View>
+                  <View style={styles.col}>
+                    <Text style={styles.inputLabel}>Genset Type</Text>
+                    {renderDropdownSelect(
+                      'gensetType',
+                      form.gensetType,
+                      val => updateForm('gensetType', val),
+                      ['Silent', 'Open'],
+                      undefined,
+                      'Pilih Tipe Genset',
                     )}
+                  </View>
                 </View>
-                <View style={styles.col} />
+                {renderMeasurementRow(
+                  'Running Hour Check (Last Month)',
+                  'runningHourLastMonth',
+                  '—',
+                  true,
+                )}
+                {renderMeasurementRow(
+                  'Running Hour Check (Current Month)',
+                  'runningHourCurrentMonth',
+                  '—',
+                  true,
+                )}
+                {renderMeasurementRow(
+                  'Durasi pengecekan lalu - sekarang',
+                  'durasiPengecekanLalu_Sekarang',
+                  '—',
+                  true,
+                )}
               </View>
             </View>
-          </View>
+
+            {/* Card 3: ATS */}
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardTitleRow}>
+                  <Text style={styles.cardTitle}>ATS</Text>
+                </View>
+              </View>
+              <View style={styles.titleDivider} />
+
+              <View style={styles.cardBody}>
+                <View style={styles.row}>
+                  <View style={styles.col}>
+                    <Text style={styles.inputLabel}>Type</Text>
+                    {renderDropdownSelect(
+                      'atsType',
+                      form.atsType,
+                      val => updateForm('atsType', val),
+                      ATS_TYPE_OPTIONS,
+                      undefined,
+                      'Pilih Type ATS',
+                    )}
+                  </View>
+                  <View style={styles.col}>
+                    <Text style={styles.inputLabel}>Controller</Text>
+                    {renderDropdownSelect(
+                      'atsController',
+                      form.atsController,
+                      val => updateForm('atsController', val),
+                      ATS_CONTROLLER_OPTIONS,
+                      undefined,
+                      'Pilih Controller ATS',
+                    )}
+                    {(form.atsController === 'Other' ||
+                      (Boolean(form.atsController) &&
+                        !ATS_CONTROLLER_OPTIONS.some(
+                          opt =>
+                            opt.toLowerCase() ===
+                            form.atsController.toLowerCase(),
+                        ))) && (
+                        <TextInput
+                          style={[styles.textInput, { marginTop: Spacing.xs }]}
+                          value={
+                            form.atsController === 'Other' ? '' : form.atsController
+                          }
+                          onChangeText={val =>
+                            updateForm('atsController', val || 'Other')
+                          }
+                          placeholder="Sebutkan controller..."
+                          placeholderTextColor={Colors.textMuted}
+                        />
+                      )}
+                  </View>
+                </View>
+
+                <View style={styles.row}>
+                  <View style={styles.col}>
+                    <Text style={styles.inputLabel}>COS</Text>
+                    {renderDropdownSelect(
+                      'atsCos',
+                      form.atsCos,
+                      val => updateForm('atsCos', val),
+                      ATS_COS_OPTIONS,
+                      undefined,
+                      'Pilih COS ATS',
+                    )}
+                    {(form.atsCos === 'Other' ||
+                      (Boolean(form.atsCos) &&
+                        !ATS_COS_OPTIONS.some(
+                          opt =>
+                            opt.toLowerCase() === form.atsCos.toLowerCase(),
+                        ))) && (
+                        <TextInput
+                          style={[styles.textInput, { marginTop: Spacing.xs }]}
+                          value={form.atsCos === 'Other' ? '' : form.atsCos}
+                          onChangeText={val => updateForm('atsCos', val || 'Other')}
+                          placeholder="Sebutkan COS..."
+                          placeholderTextColor={Colors.textMuted}
+                        />
+                      )}
+                  </View>
+                  <View style={styles.col} />
+                </View>
+              </View>
+            </View>
+
+            {/* Navigasi Footer Tab 1 */}
+            <View style={styles.navContainer}>
+              <TouchableOpacity
+                style={styles.nextButton}
+                onPress={() => switchTab(2)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.nextButtonText}>Selanjutnya</Text>
+                <ChevronRight color={Colors.white} size={16} />
+              </TouchableOpacity>
+            </View>
+          </>
         )}
 
-        {/* Card 4: Pemipaan & Bahan Bakar */}
-        {form.gensetAda === 'Ada' && (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={styles.cardTitleRow}>
-                <Text style={styles.cardTitle}>Pemipaan & Bahan Bakar</Text>
+        {/* -----------------------------------------------------------------
+          * TAB 2: PEMIPAAN & BAHAN BAKAR (BBM)
+          * - Tangki Solar Utama & Eksternal
+          * - Jalur Pipa Solar & Valve Gate
+          * - Pompa Solar (Pengujian Auto/Manual, Panel & Pelampung)
+          * - Monitoring Sisa BBM & Level Indikator
+          * ----------------------------------------------------------------- */}
+        {form.gensetAda === 'Ada' && activeTab === 2 && (
+          <>
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardTitleRow}>
+                  <Text style={styles.cardTitle}>Pemipaan & Bahan Bakar</Text>
+                </View>
+              </View>
+              <View style={styles.titleDivider} />
+
+              <View style={styles.cardBody}>
+                {renderCheckRow(
+                  'Tangki Utama',
+                  'tangkiUtama',
+                  'tangkiUtamaKet',
+                  undefined,
+                  165,
+                )}
+                {renderCheckRow(
+                  'Tangki Eksternal',
+                  'tangkiEksternal',
+                  'tangkiEksternalKet',
+                  undefined,
+                  165,
+                )}
+                {renderCheckRow(
+                  'Pipa Solar',
+                  'pipaSolar',
+                  'pipaSolarKet',
+                  undefined,
+                  165,
+                )}
+                {renderCheckRow(
+                  'Valve Gate Fuel Sys',
+                  'valveGateFuelSys',
+                  'valveGateFuelSysKet',
+                  undefined,
+                  165,
+                )}
+                <View style={styles.subHeadingContainer}>
+                  <Text style={styles.subHeading}>Pompa Solar</Text>
+                </View>
+                {renderCheckRow(
+                  'Test Pompa Kondisi Auto',
+                  'testPompaKondisiAuto',
+                  'testPompaKondisiAutoKet',
+                  undefined,
+                  165,
+                )}
+                {renderCheckRow(
+                  'Test Pompa Kondisi Manual',
+                  'testPompaKondisiManual',
+                  'testPompaKondisiManualKet',
+                  undefined,
+                  165,
+                )}
+                {renderCheckRow(
+                  'Panel Pompa Solar',
+                  'panelPompaSolar',
+                  'panelPompaSolarKet',
+                  undefined,
+                  165,
+                )}
+                {renderCheckRow(
+                  'Pelampung Pompa Solar',
+                  'pelampungPompaSolar',
+                  'pelampungPompaSolarKet',
+                  undefined,
+                  165,
+                )}
+
+                {renderMeasurementRow(
+                  'Kapasitas Tangki Utama',
+                  'kapasitasTangkiUtama',
+                )}
+                {renderMeasurementRow(
+                  'Sisa BBM Pengecekan Bulan Lalu',
+                  'sisaBbmPengecekanBulanLalu',
+                )}
+                {renderMeasurementRow(
+                  'Sisa BBM Pengecekan Bulan Sekarang',
+                  'sisaBbmPengecekanBulanSekarang',
+                )}
+                {renderMeasurementRow('Pengisian BBM', 'pengisianBbm')}
+                {renderMeasurementRow(
+                  'Level Indikator Tangki Bensin',
+                  'levelIndikatorTangkiBensin',
+                )}
+                {renderMeasurementRow(
+                  'Kapasitas Tangki Eksternal',
+                  'kapasitasTangkiEksternal',
+                )}
               </View>
             </View>
-            <View style={styles.titleDivider} />
 
-            <View style={styles.cardBody}>
-              {renderCheckRow(
-                'Tangki Utama',
-                'tangkiUtama',
-                'tangkiUtamaKet',
-                undefined,
-                165,
-              )}
-              {renderCheckRow(
-                'Tangki Eksternal',
-                'tangkiEksternal',
-                'tangkiEksternalKet',
-                undefined,
-                165,
-              )}
-              {renderCheckRow(
-                'Pipa Solar',
-                'pipaSolar',
-                'pipaSolarKet',
-                undefined,
-                165,
-              )}
-              {renderCheckRow(
-                'Valve Gate Fuel Sys',
-                'valveGateFuelSys',
-                'valveGateFuelSysKet',
-                undefined,
-                165,
-              )}
-              <View style={styles.subHeadingContainer}>
-                <Text style={styles.subHeading}>Pompa Solar</Text>
+            {/* Navigasi Footer Tab 2 */}
+            <View style={styles.navContainer}>
+              <View style={styles.dualButtonRow}>
+                <TouchableOpacity
+                  style={styles.backButton}
+                  onPress={() => switchTab(1)}
+                  activeOpacity={0.8}
+                >
+                  <ChevronLeft color={Colors.textSecondary} size={16} />
+                  <Text style={styles.backButtonText}>Kembali</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.nextButtonDual}
+                  onPress={() => switchTab(3)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.nextButtonText}>Selanjutnya</Text>
+                  <ChevronRight color={Colors.white} size={16} />
+                </TouchableOpacity>
               </View>
-              {renderCheckRow(
-                'Test Pompa Kondisi Auto',
-                'testPompaKondisiAuto',
-                'testPompaKondisiAutoKet',
-                undefined,
-                165,
-              )}
-              {renderCheckRow(
-                'Test Pompa Kondisi Manual',
-                'testPompaKondisiManual',
-                'testPompaKondisiManualKet',
-                undefined,
-                165,
-              )}
-              {renderCheckRow(
-                'Panel Pompa Solar',
-                'panelPompaSolar',
-                'panelPompaSolarKet',
-                undefined,
-                165,
-              )}
-              {renderCheckRow(
-                'Pelampung Pompa Solar',
-                'pelampungPompaSolar',
-                'pelampungPompaSolarKet',
-                undefined,
-                165,
-              )}
-
-              {renderMeasurementRow(
-                'Kapasitas Tangki Utama',
-                'kapasitasTangkiUtama',
-              )}
-              {renderMeasurementRow(
-                'Sisa BBM Pengecekan Bulan Lalu',
-                'sisaBbmPengecekanBulanLalu',
-              )}
-              {renderMeasurementRow(
-                'Sisa BBM Pengecekan Bulan Sekarang',
-                'sisaBbmPengecekanBulanSekarang',
-              )}
-              {renderMeasurementRow('Pengisian BBM', 'pengisianBbm')}
-              {renderMeasurementRow(
-                'Level Indikator Tangki Bensin',
-                'levelIndikatorTangkiBensin',
-              )}
-              {renderMeasurementRow(
-                'Kapasitas Tangki Eksternal',
-                'kapasitasTangkiEksternal',
-              )}
             </View>
-          </View>
+          </>
         )}
 
-        {/* Card 5: Visual Check Panel Genset (Kondisi Fisik) */}
-        {form.gensetAda === 'Ada' && (
-          <View style={styles.card}>
+        {/* -----------------------------------------------------------------
+          * TAB 3: PEMERIKSAAN FISIK & PENGUKURAN TEGANGAN/ARUS
+          * - Visual Check Panel Genset (Relay, Wiring, NCB, COS, Fuse, dll)
+          * - Pengukuran Output Generator (Tegangan R-N, S-N, T-N, G-N, dll)
+          * - Pengukuran Arus Output (Phasa R, S, T, R-S, R-T, S-T, Frekuensi)
+          * - Rekomendasi Teknis Genset
+          * ----------------------------------------------------------------- */}
+        {form.gensetAda === 'Ada' && activeTab === 3 && (
+          <>
+            {/* Card 5: Visual Check Panel Genset (Kondisi Fisik) */}
+            <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.cardTitleRow}>
                 <Text style={styles.cardTitle}>
@@ -995,10 +1148,8 @@ export const GensetScreen: React.FC = () => {
               {renderCheckRow('Timer (hour counter)', 'vcTimer', 'vcTimerKet')}
             </View>
           </View>
-        )}
 
-        {/* Card 6: Pengukuran Output Generator */}
-        {form.gensetAda === 'Ada' && (
+          {/* Card 6: Pengukuran Output Generator */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.cardTitleRow}>
@@ -1234,11 +1385,44 @@ export const GensetScreen: React.FC = () => {
               />
             </View>
           </View>
-        )}
 
-        {/* Card 7: Item */}
-        {form.gensetAda === 'Ada' && (
-          <View style={styles.card}>
+          {/* Navigasi Footer Tab 3 */}
+          <View style={styles.navContainer}>
+            <View style={styles.dualButtonRow}>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => switchTab(2)}
+                activeOpacity={0.8}
+              >
+                <ChevronLeft color={Colors.textSecondary} size={16} />
+                <Text style={styles.backButtonText}>Kembali</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.nextButtonDual}
+                onPress={() => switchTab(4)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.nextButtonText}>Selanjutnya</Text>
+                <ChevronRight color={Colors.white} size={16} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </>
+      )}
+
+        {/* -----------------------------------------------------------------
+          * TAB 4: PENGUJIAN, KEBERSIHAN & CATATAN
+          * - Item Pengecekan Rutin (Coolant, Oli, Fan Belt, Accu, Arrester)
+          * - Pengetesan Start Engine Manual & Pemindahan Beban
+          * - Pengetesan Otomatis (Simulasi PLN Off & Kontraktor)
+          * - Kondisi Kebersihan Ruang & Mesin Genset
+          * - Catatan Akhir & Finalisasi Inspeksi
+          * ----------------------------------------------------------------- */}
+        {form.gensetAda === 'Ada' && activeTab === 4 && (
+          <>
+            {/* Card 7: Item */}
+            <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.cardTitleRow}>
                 <Text style={styles.cardTitle}>Item</Text>
@@ -1368,10 +1552,8 @@ export const GensetScreen: React.FC = () => {
               )}
             </View>
           </View>
-        )}
 
-        {/* Card 8: Pengetesan */}
-        {form.gensetAda === 'Ada' && (
+          {/* Card 8: Pengetesan */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.cardTitleRow}>
@@ -1519,10 +1701,8 @@ export const GensetScreen: React.FC = () => {
               )}
             </View>
           </View>
-        )}
 
-        {/* Card 9: Kebersihan */}
-        {form.gensetAda === 'Ada' && (
+          {/* Card 9: Kebersihan */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.cardTitleRow}>
@@ -1584,10 +1764,8 @@ export const GensetScreen: React.FC = () => {
               )}
             </View>
           </View>
-        )}
 
-        {/* Card 10: Catatan */}
-        {form.gensetAda === 'Ada' && (
+          {/* Card 10: Catatan */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.cardTitleRow}>
@@ -1611,14 +1789,41 @@ export const GensetScreen: React.FC = () => {
               />
             </View>
           </View>
-        )}
 
+          {/* Navigasi Footer Tab 4 */}
+          <View style={styles.navContainer}>
+            <View style={styles.dualButtonRow}>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => switchTab(3)}
+                activeOpacity={0.8}
+              >
+                <ChevronLeft color={Colors.textSecondary} size={16} />
+                <Text style={styles.backButtonText}>Kembali</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.saveButtonDual}
+                onPress={() => navigation.goBack()}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.saveButtonText}>Simpan & Kembali</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </>
+      )}
+
+      {/* Tombol Simpan & Kembali jika genset Tidak Ada atau belum dipilih */}
+      {form.gensetAda !== 'Ada' && (
         <TouchableOpacity
           style={styles.saveButton}
           onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
         >
           <Text style={styles.saveButtonText}>Simpan & Kembali</Text>
         </TouchableOpacity>
+      )}
       </ScrollView>
 
       {/* Modal Picker Pop-up Universal */}
@@ -1752,19 +1957,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.border,
     marginVertical: Spacing.md,
   },
-  saveButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.md,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: Spacing.lg,
-    ...Shadow.md,
-  },
-  saveButtonText: {
-    ...Typography.subtitle1,
-    color: Colors.white,
-    fontWeight: 'bold',
-  },
+
   measurementRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1805,5 +1998,117 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
     minWidth: 32,
+  },
+  tabBarContainer: {
+    backgroundColor: Colors.surface,
+    padding: 4,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  tabScrollContent: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  tabButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabButtonActive: {
+    backgroundColor: Colors.primary,
+    ...Shadow.sm,
+  },
+  tabButtonText: {
+    ...Typography.subtitle2,
+    color: Colors.textMuted,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  tabButtonTextActive: {
+    color: Colors.white,
+    fontWeight: '700',
+  },
+  navContainer: {
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.xl,
+  },
+  nextButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    height: 44,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    ...Shadow.sm,
+  },
+  nextButtonDual: {
+    flex: 1,
+    height: 44,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    ...Shadow.sm,
+  },
+  nextButtonText: {
+    ...Typography.button,
+    color: Colors.white,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  dualButtonRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  backButton: {
+    flex: 1,
+    height: 44,
+    backgroundColor: Colors.surfaceLight,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  backButtonText: {
+    ...Typography.button,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  saveButtonDual: {
+    flex: 1,
+    height: 44,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadow.sm,
+  },
+  saveButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: Spacing.md,
+    marginBottom: Spacing.xl,
+    ...Shadow.sm,
+  },
+  saveButtonText: {
+    ...Typography.button,
+    color: Colors.white,
+    fontWeight: '700',
+    fontSize: 14,
   },
 });

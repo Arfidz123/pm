@@ -232,12 +232,54 @@ export async function requestLocationPermission(): Promise<boolean> {
 }
 
 /**
+ * Membersihkan string alamat dari Google Plus Code (seperti 2g87+gp7, 2G87+GP7) dan kode pos (5 digit)
+ */
+export function cleanAddressString(raw: string): string {
+  if (!raw) return '';
+  let res = raw;
+  // Hapus Plus Code Google (seperti 2g87+gp7, 2G87+GP7, 6Q842G87+3G, dsb.)
+  res = res.replace(/\b[A-Za-z0-9]{2,8}\+[A-Za-z0-9]{2,8}\b,?\s*/gi, '');
+  // Hapus kode pos 5 digit (misal: 93111, 93561)
+  res = res.replace(/\b\d{5}\b/g, '');
+  // Hapus kata 'Indonesia'
+  res = res.replace(/,?\s*Indonesia\b/gi, '');
+  // Bersihkan koma bertumpuk, spasi ganda, koma di awal/akhir
+  res = res.replace(/\s*,\s*,+/g, ',');
+  res = res.replace(/\s+/g, ' ');
+  res = res.replace(/^[\s,]+|[\s,]+$/g, '');
+  return res.trim();
+}
+
+/**
  * Reverse geocode latitude and longitude to full address string
  */
 export async function reverseGeocode(
   lat: number,
   lng: number,
 ): Promise<string | null> {
+  const { NativeModules, Platform } = require('react-native');
+
+  // 1. Prioritas Utama: Android Native Geocoder (Didukung langsung oleh Google Play Services / Google Maps HP)
+  // 100% gratis selamanya, tanpa perlu daftar kartu kredit, dan tanpa perlu Google Cloud API Key!
+  if (Platform.OS === 'android') {
+    try {
+      if (NativeModules.PdfDownloader?.getAddressFromCoordinates) {
+        const nativeGoogleAddr =
+          await NativeModules.PdfDownloader.getAddressFromCoordinates(lat, lng);
+        if (
+          nativeGoogleAddr &&
+          typeof nativeGoogleAddr === 'string' &&
+          nativeGoogleAddr.trim().length > 3
+        ) {
+          return cleanAddressString(nativeGoogleAddr);
+        }
+      }
+    } catch (nativeErr) {
+      console.log('Native Google Geocoder fallback to web:', nativeErr);
+    }
+  }
+
+  // 2. Fallback Web Geocoder (Nominatim & BigDataCloud) dengan prioritas pemekaran wilayah
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000);
@@ -255,21 +297,23 @@ export async function reverseGeocode(
         const a = data.address;
         const street =
           a.road || a.pedestrian || a.path || a.building || a.amenity || '';
+        // Prioritaskan nama kelurahan/lingkungan terkini (neighbourhood/quarter) sebelum suburb lama
         const village =
+          a.neighbourhood ||
+          a.quarter ||
+          a.residential ||
           a.village ||
           a.suburb ||
-          a.neighbourhood ||
           a.hamlet ||
-          a.quarter ||
           '';
         const district = a.city_district || a.subdistrict || a.county || '';
         const city = a.city || a.town || a.regency || '';
 
         const parts = [street, village, district, city].filter(Boolean);
-        if (parts.length > 0) return parts.join(', ');
+        if (parts.length > 0) return cleanAddressString(parts.join(', '));
       }
       if (data && data.display_name) {
-        return data.display_name;
+        return cleanAddressString(data.display_name);
       }
     }
   } catch (e) {
@@ -286,9 +330,8 @@ export async function reverseGeocode(
         const parts = [
           data2.locality || data2.city,
           data2.principalSubdivision,
-          data2.countryName,
         ].filter(Boolean);
-        if (parts.length > 0) return parts.join(', ');
+        if (parts.length > 0) return cleanAddressString(parts.join(', '));
       }
     } catch (e2) {
       console.warn('Reverse geocoding failed:', e2);

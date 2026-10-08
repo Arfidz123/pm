@@ -1,3 +1,23 @@
+/* -------------------------------------------------------------------------
+ * DOKUMENTASI MODUL: FOTO DOKUMENTASI POP BERKATEGORI
+ * -------------------------------------------------------------------------
+ * File       : DokumentasiScreen.tsx
+ * Fungsi     : Pengambilan dan pengelompokan dokumentasi foto hasil inspeksi POP per folder kategori.
+ * Fitur Utama:
+ * 1. Folder-based Photo Categories:
+ *    - Setiap folder mewakili kategori perangkat/fasilitas (POP Luar, POP Dalam, Genset,
+ *      ODF, ACPDB, DCPDB, ATS, Exhaust Fan, KWH, Rectifier, Battery, Lainnya).
+ * 2. Stamping Metadata Otomatis:
+ *    - Setiap foto diberi watermark timestamp dan koordinat GPS aktual secara otomatis.
+ * 3. Indikator Kelengkapan:
+ *    - Menampilkan badge "Minimal 2" foto per folder kategori.
+ * 4. Navigasi Hierarkis:
+ *    - Mendukung navigasi masuk ke dalam folder dan tombol kembali ke daftar folder.
+ *
+ * State & Store:
+ * - Store    : useInspectionStore -> activePopId, photos, addPhoto, removePhotoBySection.
+ * ------------------------------------------------------------------------- */
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -41,7 +61,6 @@ const DOKUMENTASI_PHOTO_CATEGORIES: PhotoCategoryConfig[] = [
   { key: 'acpdb', label: 'Foto ACPDB' },
   { key: 'dcpdb', label: 'Foto DCPDB' },
   { key: 'ats', label: 'Foto ATS' },
-  { key: 'powerSupply', label: 'Foto Power Supply' },
   { key: 'exhaustFan', label: 'Foto Exhaust Fan' },
   { key: 'kwhLuar', label: 'Foto Tampak Luar KWH' },
   { key: 'kwhDalam', label: 'Foto Tampak Dalam KWH' },

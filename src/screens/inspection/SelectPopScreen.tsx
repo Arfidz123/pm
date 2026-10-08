@@ -1,3 +1,25 @@
+/* -------------------------------------------------------------------------
+ * DOKUMENTASI MODUL: PEMILIHAN & MANAJEMEN POP (POINT OF PRESENCE)
+ * -------------------------------------------------------------------------
+ * File       : SelectPopScreen.tsx
+ * Fungsi     : Menampilkan daftar seluruh site POP, pencarian dinamis, aktivasi
+ *              POP untuk inspeksi, penambahan POP baru, serta penghapusan data POP.
+ * Keamanan   : Dilengkapi modal konfirmasi 2 langkah dengan Traditional Visual CAPTCHA
+ *              Style (Gaya Klasik/Forum) untuk mencegah penghapusan data tidak sengaja.
+ *
+ * FITUR UTAMA:
+ * 1. DAFTAR POP:
+ *    - Sinkronisasi WatermelonDB (lokal offline-first) & Firestore cloud DB.
+ *    - Pencarian fleksibel berdasarkan nama site atau asset code.
+ *    - Status visual POP (Aktif / Siap Inspeksi).
+ *
+ * 2. PENGHAPUSAN POP DENGAN CAPTCHA KLASIK (TRADITIONAL FORUM STYLE):
+ *    - Visual Security Image dengan distorsi karakter, rotasi kemiringan, warna tinta vintage.
+ *    - Garis goresan / noise scratch lines khas forum phpBB/vBulletin/klasik.
+ *    - Tombol refresh/acak gambar keamanan.
+ *    - Checkbox persetujuan risiko penghapusan permanen.
+ * ------------------------------------------------------------------------- */
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -41,6 +63,20 @@ import {
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+// Palet warna tinta CAPTCHA gaya forum klasik (vintage security image colors)
+const CLASSIC_CAPTCHA_COLORS = [
+  '#1E3A8A', // Deep Navy
+  '#991B1B', // Dark Crimson
+  '#065F46', // Deep Forest Green
+  '#581C87', // Royal Purple
+  '#9A3412', // Dark Mahogany
+];
+
+// Parameter distorsi karakter (rotasi sudut, geser vertikal, skala)
+const CAPTCHA_ROTATIONS = [-12, 14, -8, 12, -10];
+const CAPTCHA_TRANSLATES = [-3, 4, -4, 3, -2];
+const CAPTCHA_SCALES = [1.06, 0.94, 1.1, 0.96, 1.04];
+
 export const SelectPopScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,46 +89,35 @@ export const SelectPopScreen: React.FC = () => {
   const [popToDelete, setPopToDelete] = useState<Asset | null>(null);
   const [captchaCode, setCaptchaCode] = useState('');
   const [captchaInput, setCaptchaInput] = useState('');
-  const [isAcknowledged, setIsAcknowledged] = useState(false);
+  const [captchaError, setCaptchaError] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const { activePopId, activePopName, setActivePop, setAsset } = useInspectionStore();
 
-  // Generator CAPTCHA 5 karakter acak unik
+  // 1. Fungsi untuk generate string acak (Alfanumerik Klasik 6 karakter)
   const generateCaptcha = () => {
-    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-    let code = '';
-    for (let i = 0; i < 5; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz'; // Menghilangkan karakter mirip seperti 0, O, 1, l
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return code;
+    setCaptchaCode(result);
+    setCaptchaInput('');
+    setCaptchaError(false);
+    return result;
   };
 
   const handleOpenDeleteModal = (pop: Asset) => {
     setPopToDelete(pop);
-    setCaptchaCode(generateCaptcha());
-    setCaptchaInput('');
-    setIsAcknowledged(false);
+    generateCaptcha();
   };
 
   const handleConfirmDelete = async () => {
     if (!popToDelete) return;
 
-    if (captchaInput.trim().toUpperCase() !== captchaCode) {
-      showAlert({
-        type: 'error',
-        title: 'Kode CAPTCHA Salah',
-        message: 'Kode yang Anda ketikkan tidak cocok. Silakan coba lagi.',
-      });
-      return;
-    }
-
-    if (!isAcknowledged) {
-      showAlert({
-        type: 'warning',
-        title: 'Konfirmasi Diperlukan',
-        message: 'Harap centang kotak persetujuan sebelum menghapus POP.',
-      });
+    if (captchaInput !== captchaCode) {
+      setCaptchaError(true);
+      generateCaptcha(); // Acak ulang jika salah ketik
       return;
     }
 
@@ -513,148 +538,135 @@ export const SelectPopScreen: React.FC = () => {
         />
       )}
 
-      {/* Modal Verifikasi 2 Langkah & CAPTCHA Penghapusan POP */}
+      {/* Modal Verifikasi CAPTCHA Klasik Penghapusan POP */}
       <Modal
         visible={!!popToDelete}
         transparent
         animationType="fade"
         onRequestClose={() => {
-          if (!isDeleting) setPopToDelete(null);
+          if (!isDeleting) {
+            setPopToDelete(null);
+            setCaptchaError(false);
+          }
         }}
       >
         <View style={styles.modalBackdrop}>
-          <View style={styles.deleteModalCard}>
-            {/* Warning Icon & Header Row */}
-            <View style={styles.deleteHeaderRow}>
-              <View style={styles.alertIconCircle}>
-                <AlertTriangle size={22} color={Colors.danger} />
-              </View>
-              <Text style={styles.deleteModalTitle}>Konfirmasi Hapus POP</Text>
-            </View>
-
-            {/* Detail POP Info Box (Kotak Merah: Nama POP & Teks Peringatan) */}
-            {popToDelete && (
-              <View style={styles.popDetailBox}>
-                <Text style={styles.popDetailName}>
-                  {cleanPopName(popToDelete.name)}
-                </Text>
-                <Text style={styles.popDetailWarningText}>
-                  <Text style={{ fontWeight: 'bold', color: '#FCA5A5' }}>
-                    Peringatan :{' '}
-                  </Text>
-                  Tindakan ini tidak dapat dibatalkan, seluruh data dan riwayat
-                  akan dihapus seketika.
+          <View style={styles.classicModalCard}>
+            {/* Header Merah Diperbesar & Ikon Vector Peringatan */}
+            <LinearGradient
+              colors={['#DC2626', '#B91C1C']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.classicHeader}
+            >
+              <View style={styles.classicHeaderTitleRow}>
+                <AlertTriangle
+                  size={18}
+                  color="#FFFFFF"
+                  strokeWidth={2.3}
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.classicHeaderTitle}>
+                  KONFIRMASI PENGHAPUSAN POP
                 </Text>
               </View>
-            )}
+              <TouchableOpacity
+                onPress={() => {
+                  if (!isDeleting) {
+                    setPopToDelete(null);
+                    setCaptchaError(false);
+                  }
+                }}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <Text style={styles.classicCloseBtn}>×</Text>
+              </TouchableOpacity>
+            </LinearGradient>
 
-            {/* CAPTCHA Section */}
-            <View style={styles.captchaSection}>
-              <Text style={styles.captchaLabel}>
-                Verifikasi Keamanan CAPTCHA
-              </Text>
-              <Text style={styles.captchaSubLabel}>
-                Ketik kode 5-karakter di bawah ini untuk konfirmasi:
-              </Text>
+            <View style={styles.classicBody}>
+              {popToDelete && (
+                <Text style={styles.classicWarningText}>
+                  Anda akan menghapus "{cleanPopName(popToDelete.name)}" secara
+                  permanen. Tindakan ini tidak dapat dibatalkan.
+                </Text>
+              )}
 
-              {/* Visual CAPTCHA Box */}
-              <View style={styles.captchaBox}>
-                <View style={styles.captchaPattern}>
-                  <Text style={styles.captchaText}>
-                    {captchaCode.split('').join('  ')}
+              {/* BOX CAPTCHA TRADISIONAL */}
+              <View style={styles.classicCaptchaBox}>
+                {/* Efek Garis Gangguan (Noise Lines) Khas Forum Lama */}
+                <View style={styles.noiseLine1} pointerEvents="none" />
+                <View style={styles.noiseLine2} pointerEvents="none" />
+                <View style={styles.noiseLine3} pointerEvents="none" />
+
+                {/* Teks CAPTCHA Terdistorsi di Tengah */}
+                <View style={styles.classicCaptchaTextWrap}>
+                  <Text style={styles.classicCaptchaText}>
+                    {captchaCode}
                   </Text>
                 </View>
+
+                {/* Tombol Segarkan Tanpa Emote */}
                 <TouchableOpacity
-                  style={styles.captchaRefreshBtn}
-                  onPress={() => {
-                    setCaptchaCode(generateCaptcha());
-                    setCaptchaInput('');
-                  }}
+                  style={styles.classicRefreshBtn}
+                  onPress={generateCaptcha}
                   activeOpacity={0.7}
                 >
-                  <RefreshCw size={18} color={Colors.primary} />
+                  <Text style={styles.classicRefreshBtnText}>Segarkan</Text>
+                  <RefreshCw
+                    size={12}
+                    color={Colors.textSecondary}
+                    style={{ marginLeft: 4 }}
+                  />
                 </TouchableOpacity>
               </View>
 
-              {/* Input CAPTCHA */}
-              <TextInput
-                style={[
-                  styles.captchaInput,
-                  captchaInput.trim().toUpperCase() === captchaCode &&
-                    styles.captchaInputMatch,
-                ]}
-                placeholder="Ketik kode CAPTCHA di sini"
-                placeholderTextColor={Colors.textMuted}
-                value={captchaInput}
-                onChangeText={setCaptchaInput}
-                autoCapitalize="characters"
-                maxLength={8}
-              />
-
-              {/* Kotak Centang Persetujuan Bahaya */}
-              <TouchableOpacity
-                style={styles.checkboxContainer}
-                onPress={() => setIsAcknowledged(!isAcknowledged)}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.checkboxBox,
-                    isAcknowledged && styles.checkboxBoxChecked,
-                  ]}
-                >
-                  {isAcknowledged && (
-                    <Check size={14} color="#ffffff" strokeWidth={3} />
-                  )}
-                </View>
-                <Text style={styles.checkboxLabel}>
-                  Saya memahami risiko dan menyetujui penghapusan seluruh data
-                  POP ini.
+              {/* Form Input */}
+              <View>
+                <Text style={styles.classicInputLabel}>
+                  Ketik Kode Keamanan:
                 </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Modal Buttons */}
-            <View style={styles.modalButtonRow}>
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={() => setPopToDelete(null)}
-                disabled={isDeleting}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.cancelBtnText}>Batal</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.confirmDeleteBtn,
-                  (!isAcknowledged ||
-                    captchaInput.trim().toUpperCase() !== captchaCode) &&
-                    styles.confirmDeleteBtnDisabled,
-                ]}
-                onPress={handleConfirmDelete}
-                disabled={
-                  isDeleting ||
-                  !isAcknowledged ||
-                  captchaInput.trim().toUpperCase() !== captchaCode
-                }
-                activeOpacity={0.8}
-              >
-                {isDeleting ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
-                ) : (
-                  <>
-                    <Trash2
-                      size={16}
-                      color="#ffffff"
-                      style={{ marginRight: 6 }}
-                    />
-                    <Text style={styles.confirmDeleteBtnText}>
-                      Hapus Semua Data
-                    </Text>
-                  </>
+                <TextInput
+                  style={[
+                    styles.classicInput,
+                    captchaError && styles.classicInputError,
+                  ]}
+                  placeholder="Perhatikan huruf besar & kecil"
+                  placeholderTextColor="#64748B"
+                  value={captchaInput}
+                  onChangeText={text => {
+                    setCaptchaInput(text);
+                    if (captchaError) setCaptchaError(false);
+                  }}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  maxLength={6}
+                />
+                {captchaError && (
+                  <Text style={styles.classicErrorText}>
+                    ❌ Kode salah! CAPTCHA telah diacak ulang, silakan coba lagi.
+                  </Text>
                 )}
-              </TouchableOpacity>
+              </View>
+
+              {/* Tombol Aksi Hapus */}
+              <View style={styles.classicFooterRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.classicSubmitBtn,
+                    (captchaInput.length !== 6 || isDeleting) &&
+                      styles.classicSubmitBtnDisabled,
+                  ]}
+                  onPress={handleConfirmDelete}
+                  disabled={captchaInput.length !== 6 || isDeleting}
+                  activeOpacity={0.8}
+                >
+                  {isDeleting ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <Text style={styles.classicSubmitBtnText}>Hapus</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -857,191 +869,180 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(5, 9, 20, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Spacing.lg,
+    padding: Spacing.md,
   },
-  deleteModalCard: {
+  classicModalCard: {
     width: '100%',
-    maxWidth: 380,
+    maxWidth: 350,
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderWidth: 1.5,
+    borderColor: '#334155',
+    borderRadius: 10,
+    overflow: 'hidden',
     ...Shadow.lg,
   },
-  deleteHeaderRow: {
+  classicHeader: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    justifyContent: 'space-between',
   },
-  alertIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+  classicHeaderTitleRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.sm + 2,
-  },
-  deleteModalTitle: {
-    ...Typography.h3,
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: Colors.text,
     flex: 1,
   },
-  popDetailBox: {
-    backgroundColor: 'rgba(239, 68, 68, 0.18)',
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-    borderWidth: 1.5,
-    borderColor: '#EF4444',
-  },
-  popDetailName: {
-    ...Typography.body,
-    fontSize: 14,
+  classicHeaderTitle: {
+    color: '#FFFFFF',
     fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 6,
+    letterSpacing: 0.5,
+    fontSize: 12.5,
+    textTransform: 'uppercase',
   },
-  popDetailWarningText: {
-    ...Typography.caption,
-    fontSize: 11.5,
-    color: '#FECACA',
-    lineHeight: 16,
-    fontWeight: '500',
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginTop: Spacing.md,
+  classicCloseBtn: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: 'bold',
+    fontSize: 20,
+    lineHeight: 20,
     paddingHorizontal: 2,
   },
-  checkboxBox: {
-    width: 20,
-    height: 20,
-    borderRadius: 5,
-    borderWidth: 1.5,
-    borderColor: Colors.textMuted,
-    backgroundColor: Colors.backgroundSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-    marginTop: 1,
+  classicBody: {
+    padding: 14,
   },
-  checkboxBoxChecked: {
-    backgroundColor: Colors.danger,
-    borderColor: Colors.danger,
-  },
-  checkboxLabel: {
-    ...Typography.caption,
-    fontSize: 11.5,
+  classicWarningText: {
+    fontSize: 12.5,
     color: Colors.textSecondary,
-    flex: 1,
-    lineHeight: 16,
+    marginBottom: 12,
+    lineHeight: 18,
   },
-  captchaSection: {
-    marginBottom: Spacing.lg,
-  },
-  captchaLabel: {
-    ...Typography.body,
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  captchaSubLabel: {
-    ...Typography.caption,
-    fontSize: 10.5,
-    color: Colors.textMuted,
-    marginBottom: Spacing.xs + 2,
-  },
-  captchaBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
-    borderRadius: BorderRadius.md,
+  classicCaptchaBox: {
+    position: 'relative',
+    backgroundColor: Colors.background,
     borderWidth: 1.5,
-    borderColor: 'rgba(59, 130, 246, 0.4)',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    marginBottom: Spacing.sm,
-  },
-  captchaPattern: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  captchaText: {
-    fontSize: 22,
-    fontWeight: '900',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    color: Colors.primaryLight,
-    letterSpacing: 6,
-    textDecorationLine: 'line-through',
-  },
-  captchaRefreshBtn: {
-    padding: Spacing.xs,
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
-    borderRadius: BorderRadius.sm,
-  },
-  captchaInput: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.glassBorder,
-    color: Colors.text,
-    fontSize: 14,
-    paddingHorizontal: Spacing.md,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(59, 130, 246, 0.45)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
     paddingVertical: 10,
-    textAlign: 'center',
-    letterSpacing: 2,
-    fontWeight: 'bold',
-  },
-  captchaInputMatch: {
-    borderColor: Colors.success,
-    backgroundColor: 'rgba(46, 204, 113, 0.08)',
-  },
-  modalButtonRow: {
+    marginBottom: 12,
+    overflow: 'hidden',
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    gap: Spacing.sm,
   },
-  cancelBtn: {
-    flex: 1,
-    paddingVertical: Spacing.sm + 4,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.surfaceLight,
-    alignItems: 'center',
-    justifyContent: 'center',
+  noiseLine1: {
+    position: 'absolute',
+    top: 10,
+    left: -20,
+    right: -20,
+    height: 1.5,
+    backgroundColor: Colors.primary,
+    opacity: 0.25,
+    transform: [{ rotate: '3deg' }],
   },
-  cancelBtnText: {
-    ...Typography.body,
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: Colors.textSecondary,
+  noiseLine2: {
+    position: 'absolute',
+    top: 22,
+    left: -20,
+    right: -20,
+    height: 1.2,
+    backgroundColor: Colors.primaryLight,
+    opacity: 0.2,
+    transform: [{ rotate: '-2deg' }],
   },
-  confirmDeleteBtn: {
-    flex: 1.5,
-    flexDirection: 'row',
-    paddingVertical: Spacing.sm + 4,
-    borderRadius: BorderRadius.md,
+  noiseLine3: {
+    position: 'absolute',
+    top: 34,
+    left: -20,
+    right: -20,
+    height: 1.5,
     backgroundColor: Colors.danger,
+    opacity: 0.2,
+    transform: [{ rotate: '1deg' }],
+  },
+  classicCaptchaTextWrap: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  classicCaptchaText: {
+    fontSize: 21,
+    fontWeight: 'bold',
+    color: '#60A5FA',
+    letterSpacing: 5,
+  },
+  classicRefreshBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     ...Shadow.sm,
   },
-  confirmDeleteBtnDisabled: {
-    backgroundColor: 'rgba(231, 76, 60, 0.3)',
+  classicRefreshBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textSecondary,
   },
-  confirmDeleteBtnText: {
-    ...Typography.body,
-    fontSize: 13,
+  classicInputLabel: {
+    fontSize: 11,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: Colors.textMuted,
+    textTransform: 'uppercase',
+    marginBottom: 5,
+  },
+  classicInput: {
+    width: '100%',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1.5,
+    borderColor: '#334155',
+    borderRadius: 6,
+    backgroundColor: '#0F172A',
+    fontSize: 13.5,
+    letterSpacing: 2,
+    color: Colors.text,
+  },
+  classicInputError: {
+    borderColor: '#EF4444',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+  },
+  classicErrorText: {
+    fontSize: 11,
+    color: '#EF4444',
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  classicFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingTop: 12,
+    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+  },
+  classicSubmitBtn: {
+    paddingHorizontal: 22,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: '#DC2626',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 90,
+  },
+  classicSubmitBtnDisabled: {
+    backgroundColor: 'rgba(220, 38, 38, 0.3)',
+  },
+  classicSubmitBtnText: {
+    fontSize: 12.5,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
 });

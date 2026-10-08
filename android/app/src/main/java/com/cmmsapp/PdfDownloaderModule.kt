@@ -29,6 +29,9 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import android.media.ExifInterface
 import com.facebook.react.bridge.ReadableMap
+import android.location.Geocoder
+import android.location.Address
+import java.util.Locale
 
 class PdfDownloaderModule(private val reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -419,5 +422,76 @@ class PdfDownloaderModule(private val reactContext: ReactApplicationContext) :
         if (degrees == 0f) return bitmap
         val matrix = Matrix().apply { postRotate(degrees) }
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    }
+
+    /**
+     * Reverse geocode latitude & longitude menggunakan Android Native Geocoder
+     * (Didukung langsung oleh Google Play Services / Google Maps bawaan HP, 100% gratis tanpa API key).
+     */
+    @ReactMethod
+    fun getAddressFromCoordinates(latitude: Double, longitude: Double, promise: Promise) {
+        Thread {
+            try {
+                if (!Geocoder.isPresent()) {
+                    promise.resolve(null)
+                    return@Thread
+                }
+                val geocoder = Geocoder(reactContext, Locale.forLanguageTag("id-ID"))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    geocoder.getFromLocation(latitude, longitude, 1) { addresses ->
+                        if (addresses.isNotEmpty()) {
+                            val addr = addresses[0]
+                            val fullAddress = formatAndroidAddress(addr)
+                            promise.resolve(fullAddress)
+                        } else {
+                            promise.resolve(null)
+                        }
+                    }
+                } else {
+                    @Suppress("DEPRECATION")
+                    val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+                    if (!addresses.isNullOrEmpty()) {
+                        val addr = addresses[0]
+                        val fullAddress = formatAndroidAddress(addr)
+                        promise.resolve(fullAddress)
+                    } else {
+                        promise.resolve(null)
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                promise.resolve(null)
+            }
+        }.start()
+    }
+
+    private fun formatAndroidAddress(addr: Address): String {
+        val line0 = addr.getAddressLine(0)
+        if (!line0.isNullOrBlank()) {
+            return cleanAddressString(line0)
+        }
+
+        val parts = mutableListOf<String>()
+        addr.thoroughfare?.let { parts.add(it) }
+        addr.subLocality?.let { parts.add(it) }
+        addr.locality?.let { parts.add(it) }
+        addr.subAdminArea?.let { if (!parts.contains(it)) parts.add(it) }
+
+        return if (parts.isNotEmpty()) cleanAddressString(parts.joinToString(", ")) else ""
+    }
+
+    private fun cleanAddressString(raw: String): String {
+        var res = raw
+        // Hapus Google Plus Code (seperti 2g87+gp7, 2G87+GP7, 6Q842G87+3G, dll)
+        res = res.replace(Regex("""(?i)\b[A-Za-z0-9]{2,8}\+[A-Za-z0-9]{2,8}\b,?\s*"""), "")
+        // Hapus kode pos 5 digit (misal 93111, 93561)
+        res = res.replace(Regex("""\b\d{5}\b"""), "")
+        // Hapus kata 'Indonesia'
+        res = res.replace(Regex("""(?i),?\s*Indonesia\b"""), "")
+        // Bersihkan koma dobel, koma di awal/akhir, spasi berlebih
+        res = res.replace(Regex("""\s*,\s*,"""), ",")
+        res = res.replace(Regex("""\s+"""), " ")
+        res = res.replace(Regex("""^[\s,]+|[\s,]+$"""), "")
+        return res.trim()
     }
 }

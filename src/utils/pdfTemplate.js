@@ -564,11 +564,6 @@ var generatePdfHtml = function (
                         { key: 'dcpdb', label: 'Foto DCPDB', matchPatterns: ['dcpdb'] },
                         { key: 'ats', label: 'Foto ATS', matchPatterns: ['ats'] },
                         {
-                                key: 'powerSupply',
-                                label: 'Foto Power Supply',
-                                matchPatterns: ['power supply', 'powersupply'],
-                        },
-                        {
                                 key: 'exhaustFan',
                                 label: 'Foto Exhaust Fan',
                                 matchPatterns: ['exhaust fan', 'exhaust', 'fan'],
